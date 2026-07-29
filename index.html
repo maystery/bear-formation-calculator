@@ -3,111 +3,215 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>March Ratio Calculator</title>
+<title>Bear Formation Calculator</title>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a3040;
-    --text:#e6e9ef; --dim:#9aa3b2; --acc:#f0b429; --inf:#e0653f; --cav:#4f9de0; --arc:#5ec27e;
+    --surface-0:#f5f4ef; --surface-1:#f1efe8; --surface-2:#ffffff;
+    --text-primary:#191917; --text-secondary:#5f5e5a; --text-muted:#8b8a83;
+    --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.22);
+    --bg-accent:#e6f1fb; --text-accent:#185fa5;
+    --bg-warning:#faeeda; --text-warning:#854f0b;
+    --bg-pro:#eeedfe; --text-pro:#534ab7;
+    --radius:8px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-0:#131316; --surface-1:#1e1e22; --surface-2:#26262b;
+      --text-primary:#ececef; --text-secondary:#a9a8a2; --text-muted:#7d7c76;
+      --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.26);
+      --bg-accent:#0c447c; --text-accent:#b5d4f4;
+      --bg-warning:#633806; --text-warning:#fac775;
+      --bg-pro:#3c3489; --text-pro:#cecbf6;
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}
-  .wrap{max-width:940px;margin:0 auto}
-  h1{font-size:20px;margin:0 0 4px}
-  .sub{color:var(--dim);font-size:13px;margin-bottom:20px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:760px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:0 0 12px;font-weight:600}
-  label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:14px}
-  label span.n{color:var(--dim)}
-  input{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:7px 9px;width:130px;text-align:right;font:inherit;font-variant-numeric:tabular-nums}
-  input:focus{outline:none;border-color:var(--acc)}
-  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px}
-  .warn{color:var(--acc);font-size:12px;margin-top:8px;min-height:16px}
-  .totals{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0 12px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
-  .tot b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
-  .tot span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
-  table{width:100%;border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
-  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);font-size:14px}
-  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  th:first-child,td:first-child{text-align:left}
-  tfoot td{font-weight:600;border-bottom:none;border-top:2px solid var(--line)}
-  .pill{display:inline-block;padding:2px 8px;border-radius:20px;background:var(--panel2);font-size:12px;color:var(--dim)}
-  .leftover{margin-top:14px;font-size:13px;color:var(--dim)}
-  .leftover b{color:var(--text)}
-  .formula{margin-top:20px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--dim)}
-  .formula code{color:var(--acc);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  body{
+    margin:0;padding:2rem 1.25rem;background:var(--surface-0);color:var(--text-primary);
+    font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:22px;font-weight:500;margin:0 0 4px}
+  .sub{color:var(--text-secondary);font-size:14px;margin:0 0 1.5rem}
+  .row{display:grid;gap:12px;margin-bottom:12px}
+  .r4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .r5{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .tile{background:var(--surface-1);border-radius:var(--radius);padding:0.75rem 1rem}
+  .tile.accent{background:var(--bg-accent)}
+  .tile.warn{background:var(--bg-warning)}
+  .tile.pro{background:var(--bg-pro)}
+  .lbl{font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+  .tile.accent .lbl{color:var(--text-accent)}
+  .tile.warn .lbl{color:var(--text-warning)}
+  .tile.pro .lbl{color:var(--text-pro)}
+  .val{font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+  .tile.accent .val{color:var(--text-accent)}
+  .metric .lbl{margin-bottom:2px}
+  b{font-weight:500}
+  input[type=text],input[type=number],select{
+    width:100%;height:36px;padding:0 10px;font:inherit;font-size:15px;
+    background:var(--surface-2);color:var(--text-primary);
+    border:0.5px solid var(--border);border-radius:var(--radius);
+    font-variant-numeric:tabular-nums;
+  }
+  input[type=text],input[type=number]{text-align:right}
+  input:hover,select:hover{border-color:var(--border-strong)}
+  input:focus,select:focus{outline:none;border-color:var(--text-accent);box-shadow:0 0 0 1px var(--text-accent)}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;margin:2px 0;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--border-strong)}
+  input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--border-strong)}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;border-radius:50%;margin-top:-7px;
+    background:var(--surface-2);border:1px solid var(--border-strong);cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;background:var(--surface-2);
+    border:1px solid var(--border-strong);cursor:pointer;
+  }
+  button{
+    height:36px;padding:0 16px;font:inherit;font-size:15px;font-weight:500;
+    background:transparent;color:var(--text-primary);
+    border:0.5px solid var(--border-strong);border-radius:var(--radius);cursor:pointer;
+  }
+  button:hover{background:var(--surface-2)}
+  button:active{transform:scale(0.98)}
+  button:focus-visible{outline:none;box-shadow:0 0 0 1px var(--text-accent)}
+  .ratio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .ratio input{min-width:0;width:100%;padding:0 4px;text-align:center;-moz-appearance:textfield}
+  .ratio input::-webkit-outer-spin-button,
+  .ratio input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .ratiokeys{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px;
+    font-size:11px;color:var(--text-muted);text-align:center;letter-spacing:.04em}
+  .grid5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;padding:9px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+  .grid5 div:not(:first-child){text-align:right}
+  .head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+  .line{border-top:0.5px solid var(--border)}
+  .sumline{border-top:0.5px solid var(--border-strong);font-weight:500}
+  .note{font-size:13px;color:var(--text-secondary);margin-top:12px}
+  .hint{font-size:12px;color:var(--text-muted);margin-top:6px}
+  .warnmsg{font-size:12px;color:var(--text-warning);min-height:16px;margin-top:4px}
+  details{margin-top:1.5rem;font-size:14px;color:var(--text-secondary)}
+  summary{cursor:pointer;color:var(--text-primary);font-weight:500}
+  details code{background:var(--surface-1);padding:1px 5px;border-radius:4px;font-size:13px}
+  details ol{padding-left:1.2rem}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>March Ratio Calculator</h1>
-  <div class="sub">Splits your troops into equal marches at a fixed composition ratio.</div>
+  <h1>Bear formation calculator</h1>
+  <p class="sub">Splits your troops across up to 6 bear hunt marches at a fixed composition ratio.</p>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Troops available</h2>
-      <label><span><i class="dot" style="background:var(--inf)"></i>Infantry</span><input id="si" type="number" value="281850"></label>
-      <label><span><i class="dot" style="background:var(--cav)"></i>Cavalry</span><input id="sc" type="number" value="292799"></label>
-      <label><span><i class="dot" style="background:var(--arc)"></i>Archers</span><input id="sa" type="number" value="566040"></label>
+  <div class="tile" style="margin-bottom:12px">
+    <div class="lbl">Presets</div>
+    <button id="pex" type="button">PEX <span style="color:var(--text-secondary);font-weight:400">· 10 / 10 / 80</span></button>
+  </div>
+
+  <div class="row r4">
+    <div class="tile"><div class="lbl">Infantry</div><input id="si" type="text" inputmode="decimal" value="281.85k"></div>
+    <div class="tile"><div class="lbl">Cavalry</div><input id="sc" type="text" inputmode="decimal" value="292.799k"></div>
+    <div class="tile"><div class="lbl">Archers</div><input id="sa" type="text" inputmode="decimal" value="566.04k"></div>
+    <div class="tile"><div class="lbl">Units</div>
+      <select id="unit"><option value="k" selected>k / m short</option><option value="full">Full numbers</option></select></div>
+  </div>
+
+  <div class="row r4">
+    <div class="tile">
+      <div class="lbl">Ratio %</div>
+      <div class="ratio">
+        <input id="ri" type="number" value="10" aria-label="Infantry percent">
+        <input id="rc" type="number" value="10" aria-label="Cavalry percent">
+        <input id="ra" type="number" value="80" aria-label="Archer percent">
+      </div>
+      <div class="ratiokeys"><div>Inf</div><div>Cav</div><div>Arc</div></div>
+      <div class="warnmsg" id="warn"></div>
     </div>
-    <div class="card">
-      <h2>Ratio &amp; marches</h2>
-      <label><span>Infantry %</span><input id="ri" type="number" value="10"></label>
-      <label><span>Cavalry %</span><input id="rc" type="number" value="10"></label>
-      <label><span>Archer %</span><input id="ra" type="number" value="80"></label>
-      <label><span>Number of marches</span><input id="n" type="number" value="5" min="1"></label>
-      <label><span>Max march capacity <span class="n">(0 = no limit)</span></span><input id="cap" type="number" value="0"></label>
-      <div class="warn" id="warn"></div>
+    <div class="tile">
+      <div class="lbl">Marches: <b id="nOut" style="color:var(--text-primary)">5</b> <span style="color:var(--text-muted)">/ 6 max</span></div>
+      <input id="n" type="range" min="1" max="6" step="1" value="5">
+    </div>
+    <div class="tile warn">
+      <div class="lbl">Base deploy cap / march</div>
+      <input id="cap" type="text" inputmode="decimal" value="139.31k" placeholder="0 = no limit">
+    </div>
+    <div class="tile pro">
+      <div class="lbl">Valora <b>Savage Advantage</b> · skill 4<br>Lv <b id="savOut">10</b> · <b id="savBon">+30k</b> per march</div>
+      <input id="sav" type="range" min="0" max="10" step="1" value="10">
     </div>
   </div>
 
-  <div class="totals">
-    <div class="tot"><span>Total sent</span><b id="tTotal">–</b></div>
-    <div class="tot"><span>Per march</span><b id="tPer">–</b></div>
-    <div class="tot"><span>Bottleneck</span><b id="tLim">–</b></div>
-    <div class="tot"><span>Full marches possible</span><b id="tFill">–</b></div>
+  <div class="row r5" style="margin-bottom:1rem">
+    <div class="tile accent metric"><div class="lbl">Total sent</div><div class="val" id="tTotal">–</div></div>
+    <div class="tile metric"><div class="lbl">Per march</div><div class="val" id="tPer">–</div></div>
+    <div class="tile metric"><div class="lbl">Deploy cap</div><div class="val" id="tCap">–</div></div>
+    <div class="tile metric"><div class="lbl">Bottleneck</div><div class="val" id="tLim" style="font-size:18px">–</div></div>
   </div>
 
-  <table>
-    <thead><tr><th>March</th><th>Infantry</th><th>Cavalry</th><th>Archers</th><th>Total</th></tr></thead>
-    <tbody id="rows"></tbody>
-    <tfoot><tr id="foot"></tr></tfoot>
-  </table>
+  <div id="rows"></div>
+  <div class="note" id="leftover"></div>
+  <div class="hint">Type <code>566k</code>, <code>1.2m</code> or <code>566,040</code> in any number field.</div>
 
-  <div class="leftover" id="leftover"></div>
-
-  <div class="formula">
-    <b style="color:var(--text)">Formula</b><br>
-    1. Max deployable total: <code>T = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code> — the scarcest troop type relative to its share sets the ceiling.<br>
-    2. With a max march capacity C over n marches: <code>T = min(T, C × n)</code> — and the number of marches you can fill completely is <code>floor(T_troops / C)</code>.<br>
-    3. Per march: <code>M = T / n</code>, then <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code><br>
-    Rounding uses largest-remainder so the per-march numbers sum exactly to the total.
-  </div>
+  <details>
+    <summary>How it's calculated</summary>
+    <ol>
+      <li>Troop ceiling — the scarcest type relative to its share: <code>T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code></li>
+      <li>Per-march deployment cap: <code>C = base deployment + 3,000 × savage_level</code> (max +30,000 at Lv. 10)</li>
+      <li>Deployable total: <code>T = min(T_troops, C × n)</code></li>
+      <li>Per march: <code>M = T / n</code>, then <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code></li>
+    </ol>
+    <p>Rounding uses largest-remainder so per-march numbers sum exactly to the total. Leave a capacity at 0 to treat it as unlimited.</p>
+  </details>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const ids = ['si','sc','sa','ri','rc','ra','n','cap'];
-const fmt = x => x.toLocaleString('en-US');
+const IDS = ['si','sc','sa','ri','rc','ra','n','cap','sav','unit'];
+const SAVAGE_PER_LEVEL = 3000;
+const MAX_MARCHES = 6;
+let UNIT = 'k';
 
-// distribute an integer total across n buckets as evenly as possible
+const parse = v => {
+  const s = String(v).trim().toLowerCase().replace(/[,\s]/g,'');
+  if(!s) return 0;
+  const m = s.match(/^(-?[\d.]+)\s*([kmb])?$/);
+  if(!m) return 0;
+  return (parseFloat(m[1]) || 0) * ({k:1e3, m:1e6, b:1e9}[m[2]] || 1);
+};
+const trim = n => n.toFixed(2).replace(/\.?0+$/,'');
+const fmt = x => {
+  x = Math.round(x);
+  if(UNIT === 'full' || Math.abs(x) < 1000) return x.toLocaleString('en-US');
+  if(Math.abs(x) >= 1e6) return trim(x/1e6) + 'm';
+  return trim(x/1e3) + 'k';
+};
 function spread(total, n){
   const base = Math.floor(total / n), rem = total - base * n;
   return Array.from({length:n}, (_,i) => base + (i < rem ? 1 : 0));
 }
+const row = (a,b,c,d,e,cls) =>
+  `<div class="grid5 ${cls}"><div>${a}</div><div>${b}</div><div>${c}</div><div>${d}</div><div><b>${e}</b></div></div>`;
 
 function calc(){
-  const S = {inf:+$('si').value||0, cav:+$('sc').value||0, arc:+$('sa').value||0};
-  let R = {inf:+$('ri').value||0, cav:+$('rc').value||0, arc:+$('ra').value||0};
-  const n = Math.max(1, Math.floor(+$('n').value||1));
-  const cap = Math.max(0, +$('cap').value||0);
-  const sum = R.inf + R.cav + R.arc;
-  $('warn').textContent = sum === 100 ? '' : `Ratio sums to ${sum}% — normalising to 100%.`;
-  if(sum <= 0) return;
-  const r = {inf:R.inf/sum, cav:R.cav/sum, arc:R.arc/sum};
+  UNIT = $('unit').value;
+  const S = {inf:parse($('si').value), cav:parse($('sc').value), arc:parse($('sa').value)};
+  const P = {inf:+$('ri').value||0, cav:+$('rc').value||0, arc:+$('ra').value||0};
+  const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value||1)));
 
-  // limiting troop type
+  const sav = Math.min(10, Math.max(0, Math.floor(+$('sav').value||0)));
+  const savBonus = sav * SAVAGE_PER_LEVEL;
+  $('nOut').textContent = n;
+  $('savOut').textContent = sav;
+  $('savBon').textContent = '+' + fmt(savBonus);
+
+  const baseCap = Math.max(0, parse($('cap').value));
+  const cap = baseCap > 0 ? baseCap + savBonus : 0;
+  $('tCap').textContent = cap > 0 ? fmt(cap) : '∞';
+
+  const sum = P.inf + P.cav + P.arc;
+  $('warn').textContent = sum === 100 ? '' : `Sums to ${sum}% — normalising.`;
+  if(sum <= 0) return;
+  const r = {inf:P.inf/sum, cav:P.cav/sum, arc:P.arc/sum};
+
   let T = Infinity, lim = '—';
   for(const k of ['inf','cav','arc']){
     if(r[k] === 0) continue;
@@ -115,32 +219,36 @@ function calc(){
     if(t < T){ T = t; lim = {inf:'Infantry',cav:'Cavalry',arc:'Archers'}[k]; }
   }
   if(!isFinite(T)) T = 0;
-  const troopMax = T;
-  if(cap > 0 && cap * n < T){ T = cap * n; lim = 'March capacity'; }
+  if(cap > 0 && cap * n < T){ T = cap * n; lim = 'Deploy cap'; }
   T = Math.floor(T);
 
-  $('tFill').textContent = cap > 0 ? `${Math.floor(troopMax / cap)} × ${fmt(cap)}` : '∞';
-
-  // exact totals per troop type, then spread over marches
   const tot = {inf:Math.floor(T*r.inf), cav:Math.floor(T*r.cav), arc:Math.floor(T*r.arc)};
   const cols = {inf:spread(tot.inf,n), cav:spread(tot.cav,n), arc:spread(tot.arc,n)};
   const grand = tot.inf + tot.cav + tot.arc;
 
   $('tTotal').textContent = fmt(grand);
-  $('tPer').textContent = fmt(Math.round(grand/n));
+  $('tPer').textContent = fmt(grand/n);
   $('tLim').textContent = lim;
 
-  $('rows').innerHTML = Array.from({length:n},(_,i)=>{
+  let h = row('March','Infantry','Cavalry','Archers','Total','head');
+  for(let i=0;i<n;i++){
     const a=cols.inf[i], b=cols.cav[i], c=cols.arc[i];
-    return `<tr><td>March ${i+1}</td><td>${fmt(a)}</td><td>${fmt(b)}</td><td>${fmt(c)}</td><td>${fmt(a+b+c)}</td></tr>`;
-  }).join('');
+    h += row(i+1, fmt(a), fmt(b), fmt(c), fmt(a+b+c), 'line');
+  }
+  h += row('Total', fmt(tot.inf), fmt(tot.cav), fmt(tot.arc), fmt(grand), 'sumline');
+  $('rows').innerHTML = h;
 
-  $('foot').innerHTML = `<td>Total</td><td>${fmt(tot.inf)}</td><td>${fmt(tot.cav)}</td><td>${fmt(tot.arc)}</td><td>${fmt(grand)}</td>`;
-
-  $('leftover').innerHTML = `Left in city: <b>${fmt(S.inf-tot.inf)}</b> infantry · <b>${fmt(S.cav-tot.cav)}</b> cavalry · <b>${fmt(S.arc-tot.arc)}</b> archers`;
+  $('leftover').textContent =
+    `Left at home: ${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
 }
 
-ids.forEach(i => $(i).addEventListener('input', calc));
+IDS.forEach(i => { $(i).addEventListener('input', calc); $(i).addEventListener('change', calc); });
+
+$('pex').addEventListener('click', () => {
+  $('ri').value = 10; $('rc').value = 10; $('ra').value = 80;
+  calc();
+});
+
 calc();
 </script>
 </body>
