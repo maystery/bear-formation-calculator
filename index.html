@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>March Ratio Calculator</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a3040;
+    --text:#e6e9ef; --dim:#9aa3b2; --acc:#f0b429; --inf:#e0653f; --cav:#4f9de0; --arc:#5ec27e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}
+  .wrap{max-width:940px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:20px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:0 0 12px;font-weight:600}
+  label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:14px}
+  label span.n{color:var(--dim)}
+  input{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:7px 9px;width:130px;text-align:right;font:inherit;font-variant-numeric:tabular-nums}
+  input:focus{outline:none;border-color:var(--acc)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px}
+  .warn{color:var(--acc);font-size:12px;margin-top:8px;min-height:16px}
+  .totals{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0 12px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  .tot b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+  .tot span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
+  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);font-size:14px}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  th:first-child,td:first-child{text-align:left}
+  tfoot td{font-weight:600;border-bottom:none;border-top:2px solid var(--line)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;background:var(--panel2);font-size:12px;color:var(--dim)}
+  .leftover{margin-top:14px;font-size:13px;color:var(--dim)}
+  .leftover b{color:var(--text)}
+  .formula{margin-top:20px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--dim)}
+  .formula code{color:var(--acc);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>March Ratio Calculator</h1>
+  <div class="sub">Splits your troops into equal marches at a fixed composition ratio.</div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Troops available</h2>
+      <label><span><i class="dot" style="background:var(--inf)"></i>Infantry</span><input id="si" type="number" value="281850"></label>
+      <label><span><i class="dot" style="background:var(--cav)"></i>Cavalry</span><input id="sc" type="number" value="292799"></label>
+      <label><span><i class="dot" style="background:var(--arc)"></i>Archers</span><input id="sa" type="number" value="566040"></label>
+    </div>
+    <div class="card">
+      <h2>Ratio &amp; marches</h2>
+      <label><span>Infantry %</span><input id="ri" type="number" value="10"></label>
+      <label><span>Cavalry %</span><input id="rc" type="number" value="10"></label>
+      <label><span>Archer %</span><input id="ra" type="number" value="80"></label>
+      <label><span>Number of marches</span><input id="n" type="number" value="5" min="1"></label>
+      <label><span>Max march capacity <span class="n">(0 = no limit)</span></span><input id="cap" type="number" value="0"></label>
+      <div class="warn" id="warn"></div>
+    </div>
+  </div>
+
+  <div class="totals">
+    <div class="tot"><span>Total sent</span><b id="tTotal">–</b></div>
+    <div class="tot"><span>Per march</span><b id="tPer">–</b></div>
+    <div class="tot"><span>Bottleneck</span><b id="tLim">–</b></div>
+    <div class="tot"><span>Full marches possible</span><b id="tFill">–</b></div>
+  </div>
+
+  <table>
+    <thead><tr><th>March</th><th>Infantry</th><th>Cavalry</th><th>Archers</th><th>Total</th></tr></thead>
+    <tbody id="rows"></tbody>
+    <tfoot><tr id="foot"></tr></tfoot>
+  </table>
+
+  <div class="leftover" id="leftover"></div>
+
+  <div class="formula">
+    <b style="color:var(--text)">Formula</b><br>
+    1. Max deployable total: <code>T = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code> — the scarcest troop type relative to its share sets the ceiling.<br>
+    2. With a max march capacity C over n marches: <code>T = min(T, C × n)</code> — and the number of marches you can fill completely is <code>floor(T_troops / C)</code>.<br>
+    3. Per march: <code>M = T / n</code>, then <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code><br>
+    Rounding uses largest-remainder so the per-march numbers sum exactly to the total.
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const ids = ['si','sc','sa','ri','rc','ra','n','cap'];
+const fmt = x => x.toLocaleString('en-US');
+
+// distribute an integer total across n buckets as evenly as possible
+function spread(total, n){
+  const base = Math.floor(total / n), rem = total - base * n;
+  return Array.from({length:n}, (_,i) => base + (i < rem ? 1 : 0));
+}
+
+function calc(){
+  const S = {inf:+$('si').value||0, cav:+$('sc').value||0, arc:+$('sa').value||0};
+  let R = {inf:+$('ri').value||0, cav:+$('rc').value||0, arc:+$('ra').value||0};
+  const n = Math.max(1, Math.floor(+$('n').value||1));
+  const cap = Math.max(0, +$('cap').value||0);
+  const sum = R.inf + R.cav + R.arc;
+  $('warn').textContent = sum === 100 ? '' : `Ratio sums to ${sum}% — normalising to 100%.`;
+  if(sum <= 0) return;
+  const r = {inf:R.inf/sum, cav:R.cav/sum, arc:R.arc/sum};
+
+  // limiting troop type
+  let T = Infinity, lim = '—';
+  for(const k of ['inf','cav','arc']){
+    if(r[k] === 0) continue;
+    const t = S[k] / r[k];
+    if(t < T){ T = t; lim = {inf:'Infantry',cav:'Cavalry',arc:'Archers'}[k]; }
+  }
+  if(!isFinite(T)) T = 0;
+  const troopMax = T;
+  if(cap > 0 && cap * n < T){ T = cap * n; lim = 'March capacity'; }
+  T = Math.floor(T);
+
+  $('tFill').textContent = cap > 0 ? `${Math.floor(troopMax / cap)} × ${fmt(cap)}` : '∞';
+
+  // exact totals per troop type, then spread over marches
+  const tot = {inf:Math.floor(T*r.inf), cav:Math.floor(T*r.cav), arc:Math.floor(T*r.arc)};
+  const cols = {inf:spread(tot.inf,n), cav:spread(tot.cav,n), arc:spread(tot.arc,n)};
+  const grand = tot.inf + tot.cav + tot.arc;
+
+  $('tTotal').textContent = fmt(grand);
+  $('tPer').textContent = fmt(Math.round(grand/n));
+  $('tLim').textContent = lim;
+
+  $('rows').innerHTML = Array.from({length:n},(_,i)=>{
+    const a=cols.inf[i], b=cols.cav[i], c=cols.arc[i];
+    return `<tr><td>March ${i+1}</td><td>${fmt(a)}</td><td>${fmt(b)}</td><td>${fmt(c)}</td><td>${fmt(a+b+c)}</td></tr>`;
+  }).join('');
+
+  $('foot').innerHTML = `<td>Total</td><td>${fmt(tot.inf)}</td><td>${fmt(tot.cav)}</td><td>${fmt(tot.arc)}</td><td>${fmt(grand)}</td>`;
+
+  $('leftover').innerHTML = `Left in city: <b>${fmt(S.inf-tot.inf)}</b> infantry · <b>${fmt(S.cav-tot.cav)}</b> cavalry · <b>${fmt(S.arc-tot.arc)}</b> archers`;
+}
+
+ids.forEach(i => $(i).addEventListener('input', calc));
+calc();
+</script>
+</body>
+</html>
