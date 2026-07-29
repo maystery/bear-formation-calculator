@@ -12,6 +12,8 @@
     --bg-accent:#e6f1fb; --text-accent:#185fa5;
     --bg-warning:#faeeda; --text-warning:#854f0b;
     --bg-pro:#eeedfe; --text-pro:#534ab7;
+    --bg-success:#eaf3de; --text-success:#3b6d11;
+    --bg-danger:#fcebeb; --text-danger:#a32d2d;
     --radius:8px;
   }
   @media (prefers-color-scheme: dark){
@@ -22,6 +24,8 @@
       --bg-accent:#0c447c; --text-accent:#b5d4f4;
       --bg-warning:#633806; --text-warning:#fac775;
       --bg-pro:#3c3489; --text-pro:#cecbf6;
+      --bg-success:#27500a; --text-success:#c0dd97;
+      --bg-danger:#791f1f; --text-danger:#f7c1c1;
     }
   }
   *{box-sizing:border-box}
@@ -88,6 +92,13 @@
   .head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
   .line{border-top:0.5px solid var(--border)}
   .sumline{border-top:0.5px solid var(--border-strong);font-weight:500}
+  h2{font-size:18px;font-weight:500;margin:2rem 0 4px}
+  .verdict{border-radius:var(--radius);padding:0.75rem 1rem;margin-top:12px;font-size:15px}
+  .verdict.ok{background:var(--bg-success);color:var(--text-success)}
+  .verdict.bad{background:var(--bg-danger);color:var(--text-danger)}
+  .verdict .head2{font-weight:500;font-size:16px}
+  .grid4{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.4fr;gap:8px;padding:9px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+  .grid4 div:not(:first-child){text-align:right}
   .note{font-size:13px;color:var(--text-secondary);margin-top:12px}
   .hint{font-size:12px;color:var(--text-muted);margin-top:6px}
   .warnmsg{font-size:12px;color:var(--text-warning);min-height:16px;margin-top:4px}
@@ -151,6 +162,19 @@
   <div class="note" id="leftover"></div>
   <div class="hint">Type <code>566k</code>, <code>1.2m</code> or <code>566,040</code> in any number field.</div>
 
+  <h2>Check a march</h2>
+  <p class="sub" style="margin-bottom:12px">Paste the troop numbers from a march and see whether they follow the ratio above.</p>
+
+  <div class="row r4">
+    <div class="tile"><div class="lbl">Infantry</div><input id="ci" type="text" inputmode="decimal" value="0"></div>
+    <div class="tile"><div class="lbl">Cavalry</div><input id="cc" type="text" inputmode="decimal" value="0"></div>
+    <div class="tile"><div class="lbl">Archers</div><input id="ca" type="text" inputmode="decimal" value="0"></div>
+    <div class="tile"><div class="lbl">Tolerance ± pp</div><input id="tol" type="text" inputmode="decimal" value="3"></div>
+  </div>
+
+  <div id="checkRows"></div>
+  <div id="verdict"></div>
+
   <details>
     <summary>How it's calculated</summary>
     <ol>
@@ -165,7 +189,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const IDS = ['si','sc','sa','ri','rc','ra','n','cap','sav','unit'];
+const IDS = ['si','sc','sa','ri','rc','ra','n','cap','sav','unit','ci','cc','ca','tol'];
 const SAVAGE_PER_LEVEL = 3000;
 const MAX_MARCHES = 6;
 let UNIT = 'k';
@@ -240,6 +264,58 @@ function calc(){
 
   $('leftover').textContent =
     `Left at home: ${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
+
+  check(r);
+}
+
+function check(r){
+  const C = {inf:parse($('ci').value), cav:parse($('cc').value), arc:parse($('ca').value)};
+  const total = C.inf + C.cav + C.arc;
+  const tol = Math.max(0, parseFloat(String($('tol').value).replace(',','.')) || 0);
+
+  if(total <= 0){
+    $('checkRows').innerHTML = '';
+    $('verdict').innerHTML = '';
+    return;
+  }
+
+  const NAMES = {inf:'Infantry', cav:'Cavalry', arc:'Archers'};
+  let worst = 0, worstKey = 'inf';
+  const ideal = {}, delta = {}, actual = {};
+  for(const k of ['inf','cav','arc']){
+    actual[k] = C[k] / total * 100;
+    ideal[k] = Math.round(total * r[k]);
+    delta[k] = actual[k] - r[k] * 100;
+    if(Math.abs(delta[k]) > Math.abs(worst)){ worst = delta[k]; worstKey = k; }
+  }
+
+  let h = `<div class="grid4 head"><div>Type</div><div>Actual %</div><div>Target %</div><div>Should be</div></div>`;
+  for(const k of ['inf','cav','arc']){
+    const off = Math.abs(delta[k]) > tol;
+    const sign = delta[k] >= 0 ? '+' : '−';
+    const tag = off
+      ? `<span style="color:var(--text-danger)">${sign}${Math.abs(delta[k]).toFixed(2)} pp</span>`
+      : `<span style="color:var(--text-success)">within ±${tol} pp</span>`;
+    h += `<div class="grid4 line"><div>${NAMES[k]}</div>`
+       + `<div>${actual[k].toFixed(2)}%</div>`
+       + `<div>${(r[k]*100).toFixed(2)}%</div>`
+       + `<div>${fmt(ideal[k])} &nbsp; ${tag}</div></div>`;
+  }
+  $('checkRows').innerHTML = h;
+
+  const ok = Math.abs(worst) <= tol;
+  if(ok){
+    $('verdict').innerHTML =
+      `<div class="verdict ok"><div class="head2">Matches the ratio</div>`
+      + `All three types are within ±${tol} pp of target across ${fmt(total)} troops.</div>`;
+  } else {
+    const dir = worst > 0 ? 'too many' : 'too few';
+    const diff = Math.abs(C[worstKey] - ideal[worstKey]);
+    $('verdict').innerHTML =
+      `<div class="verdict bad"><div class="head2">Off the ratio</div>`
+      + `${NAMES[worstKey]} is the worst offender — ${dir} by ${fmt(diff)} `
+      + `(${Math.abs(worst).toFixed(2)} pp). Adjust to the "should be" column to hit ${fmt(total)} on ratio.</div>`;
+  }
 }
 
 IDS.forEach(i => { $(i).addEventListener('input', calc); $(i).addEventListener('change', calc); });
