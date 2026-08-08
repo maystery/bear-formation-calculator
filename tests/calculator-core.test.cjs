@@ -40,6 +40,24 @@ test('allocate water-fills marches without exceeding caps', () => {
   assert.deepEqual(allocate(300000, [169310,169310,98900]), [100550,100550,98900]);
 });
 
+test('allocate fills higher-priority hero rallies before no-hero rallies', () => {
+  assert.deepEqual(
+    allocate(300000, [169310,169310,98900], [1,1,0]),
+    [150000,150000,0]
+  );
+  assert.deepEqual(
+    allocate(400000, [169310,169310,98900], [1,1,0]),
+    [169310,169310,61380]
+  );
+});
+
+test('allocate still water-fills evenly within each priority tier', () => {
+  assert.deepEqual(
+    allocate(250000, [80000,169310,98900,98900], [1,1,0,0]),
+    [80000,169310,345,345]
+  );
+});
+
 test('splitByRatio always sums to its requested total', () => {
   const split = splitByRatio(2, {inf:.25, cav:.25, arc:.5});
   assert.equal(split.inf + split.cav + split.arc, 2);

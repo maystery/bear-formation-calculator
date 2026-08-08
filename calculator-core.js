@@ -39,7 +39,7 @@
       : {valid:false, value:0};
   }
 
-  function allocate(total, caps){
+  function allocateEvenly(total, caps){
     const count = caps.length;
     const allocation = new Array(count).fill(0);
     let remaining = total;
@@ -68,6 +68,32 @@
       }
     }
     return integers;
+  }
+
+  function allocate(total, caps, priorities){
+    if(priorities === undefined) return allocateEvenly(total, caps);
+    if(priorities.length !== caps.length){
+      throw new RangeError('Each march cap needs a matching priority');
+    }
+
+    const allocation = new Array(caps.length).fill(0);
+    let remaining = Math.floor(total);
+    const tiers = [...new Set(priorities)].sort((a, b) => b - a);
+
+    for(const tier of tiers){
+      if(remaining <= 0) break;
+      const indices = priorities
+        .map((priority, i) => priority === tier ? i : -1)
+        .filter(i => i >= 0);
+      const tierCaps = indices.map(i => caps[i]);
+      const tierCap = tierCaps.reduce((sum, cap) => sum + cap, 0);
+      const tierAllocation = allocateEvenly(Math.min(remaining, tierCap), tierCaps);
+      tierAllocation.forEach((amount, i) => {
+        allocation[indices[i]] = amount;
+        remaining -= amount;
+      });
+    }
+    return allocation;
   }
 
   function splitByRatio(total, ratio){

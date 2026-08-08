@@ -177,7 +177,7 @@
       <li>Troop ceiling — the scarcest type relative to its share: <code>T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code></li>
       <li>Each march has its own cap: a march <b>with a hero leader</b> uses <code>base deploy cap + 3,000 × savage_level</code>; a march <b>with no hero</b> is limited to the <code>squad deployment capacity</code>. Set either to 0 to treat it as unlimited.</li>
       <li>Heroes take marches in the order shown in the Heroes section. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
-      <li>Deployable total: <code>T = min(T_troops, sum of every march cap)</code>, then distributed as evenly as possible. Capped marches are held at their cap and the remainder is redistributed across marches with room.</li>
+      <li>Deployable total: <code>T = min(T_troops, sum of every march cap)</code>. Hero-led rallies are filled first, evenly up to their individual caps. Any troops left after that are distributed evenly among no-hero rallies.</li>
       <li>Within each march: <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code></li>
     </ol>
     <p>Rounding uses largest-remainder plus a global reconciliation, so every march sums exactly to its total without using more troops than you own. Leave a capacity at 0 to treat it as unlimited.</p>

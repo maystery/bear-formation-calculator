@@ -27,7 +27,14 @@ Splits your troops into up to 6 bear hunt marches at a fixed composition ratio (
    T = min(T_troops, Σ cap_i)
    ```
 
-   `T` is distributed as evenly as possible across the marches. Any march that reaches its own cap is held there, and the remainder is redistributed across marches that still have room (water-filling).
+   Hero-led rallies receive the available troops first:
+
+   ```
+   T_hero = min(T, Σ hero caps)
+   T_none = T - T_hero
+   ```
+
+   `T_hero` is distributed evenly among the hero rallies until they reach their individual caps. Only then is `T_none` distributed among no-hero rallies. Water-filling within each group keeps its rallies balanced when their caps differ.
 
 4. **Per march** — each march splits at the ratio:
 

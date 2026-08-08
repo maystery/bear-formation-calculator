@@ -228,7 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const T = wholeTroops(Math.min(troopMax, capTotal));
     const bottlenecks = findBottlenecks(troopLimits, capTotal, T);
 
-    const perMarch = allocate(T, caps);
+    // Fill hero-led rallies first. Troops are water-filled evenly within the
+    // hero tier, then any remainder is water-filled across no-hero rallies.
+    const priorities = caps.map((_, i) => order[i] ? 1 : 0);
+    const perMarch = allocate(T, caps, priorities);
     const rows = splitMarches(perMarch, r);
     const tot = {
       inf:rows.reduce((a, x) => a + x.inf, 0),
