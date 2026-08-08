@@ -84,6 +84,8 @@
   .metric.bn-troop .lbl,.metric.bn-troop .val,.metric.bn-troop .limhint{color:var(--text-danger)}
   .metric.bn-cap{background:var(--bg-success)}
   .metric.bn-cap .lbl,.metric.bn-cap .val,.metric.bn-cap .limhint{color:var(--text-success)}
+  .metric.bn-mixed{background:var(--bg-warning)}
+  .metric.bn-mixed .lbl,.metric.bn-mixed .val,.metric.bn-mixed .limhint{color:var(--text-warning)}
   .metric .lbl{margin-bottom:2px}
   b{font-weight:500}
   input[type=text],input[type=number],select{
@@ -555,8 +557,26 @@ function splitMarches(totals, r){
 function clearLimits(){
   ['tileInf','tileCav','tileArc','tileSquad','tileCap']
     .forEach(id => $(id).classList.remove('limit'));
-  $('tileLim').classList.remove('bn-troop','bn-cap');
+  $('tileLim').classList.remove('bn-troop','bn-cap','bn-mixed');
 }
+
+// Compare constraints at the same whole-troop precision used by the output.
+// The small tolerance prevents a mathematically integral ceiling from being
+// treated as one troop too low because of floating-point representation.
+function wholeTroops(value){
+  if(!Number.isFinite(value)) return Infinity;
+  const nearest = Math.round(value);
+  const tolerance = Math.min(1e-6, Math.max(1, Math.abs(value)) * Number.EPSILON * 8);
+  return Math.abs(value - nearest) <= tolerance ? nearest : Math.floor(value);
+}
+
+function findBottlenecks(troopLimits, capTotal, total){
+  return {
+    troops: troopLimits.filter(x => wholeTroops(x.ceiling) === total),
+    capacity: Number.isFinite(capTotal) && wholeTroops(capTotal) === total
+  };
+}
+
 function clearResults(){
   clearLimits();
   $('tTotal').textContent = '–';
@@ -614,20 +634,27 @@ function calc(){
   if(sum <= 0){ clearResults(); return; }
   const r = {inf:P.inf/sum, cav:P.cav/sum, arc:P.arc/sum};
 
-  let troopMax = Infinity, lim = '—';
-  for(const k of ['inf','cav','arc']){
-    if(r[k] === 0) continue;
-    const t = S[k] / r[k];
-    if(t < troopMax){ troopMax = t; lim = {inf:'Infantry',cav:'Cavalry',arc:'Archers'}[k]; }
-  }
-  if(!isFinite(troopMax)) troopMax = 0;
+  const troopMeta = {
+    inf:{label:'Infantry', tile:'tileInf'},
+    cav:{label:'Cavalry', tile:'tileCav'},
+    arc:{label:'Archers', tile:'tileArc'}
+  };
+  const troopLimits = ['inf','cav','arc']
+    .filter(k => r[k] > 0)
+    .map(k => ({key:k, ...troopMeta[k], ceiling:S[k] / r[k]}));
+  const troopMax = troopLimits.length
+    ? Math.min(...troopLimits.map(x => x.ceiling))
+    : 0;
 
   const caps = Array.from({length:n}, (_, i) => order[i] ? capHero : capNone);
   const capTotal = caps.reduce((a, b) => a + b, 0);
+  const capUsage = {
+    hero: caps.some((_, i) => Boolean(order[i])) && Number.isFinite(capHero),
+    squad: caps.some((_, i) => !order[i]) && Number.isFinite(capNone)
+  };
 
-  let T = troopMax;
-  if(capTotal < T){ T = capTotal; lim = 'Deploy cap'; }
-  T = Math.floor(T);
+  const T = wholeTroops(Math.min(troopMax, capTotal));
+  const bottlenecks = findBottlenecks(troopLimits, capTotal, T);
 
   const perMarch = allocate(T, caps);
   const rows = splitMarches(perMarch, r);
@@ -639,21 +666,36 @@ function calc(){
   const grand = tot.inf + tot.cav + tot.arc;
 
   $('tTotal').textContent = fmt(grand);
-  $('tLim').textContent = lim;
 
-  // highlight whatever is actually holding the total back
+  // Highlight every constraint that prevents one more whole troop from being
+  // deployed, but only highlight capacity sources used by an active march.
   clearLimits();
-  const troopTile = {Infantry:'tileInf', Cavalry:'tileCav', Archers:'tileArc'}[lim];
-  if(troopTile){
-    $(troopTile).classList.add('limit');
+  bottlenecks.troops.forEach(x => $(x.tile).classList.add('limit'));
+  if(bottlenecks.capacity){
+    if(capUsage.hero) $('tileCap').classList.add('limit');
+    if(capUsage.squad) $('tileSquad').classList.add('limit');
+  }
+
+  const troopLabels = bottlenecks.troops.map(x => x.label);
+  const labels = [...troopLabels];
+  if(bottlenecks.capacity) labels.push('Deployment capacity');
+  $('tLim').textContent = labels.length === 1 ? labels[0] : 'Multiple';
+
+  if(bottlenecks.troops.length && bottlenecks.capacity){
+    $('tileLim').classList.add('bn-mixed');
+    $('limHint').textContent = troopLabels.join(' + ') + ' + capacity';
+  } else if(bottlenecks.troops.length){
     $('tileLim').classList.add('bn-troop');
-    $('limHint').textContent = 'Out of ' + lim.toLowerCase();
-  } else if(lim === 'Deploy cap'){
-    $('tileSquad').classList.add('limit');
-    $('tileCap').classList.add('limit');
+    $('limHint').textContent = troopLabels.length === 1
+      ? 'Out of ' + troopLabels[0].toLowerCase()
+      : troopLabels.join(' + ');
+  } else if(bottlenecks.capacity){
     $('tileLim').classList.add('bn-cap');
-    $('limHint').textContent = 'Capacity limited';
+    $('limHint').textContent = capUsage.hero && capUsage.squad
+      ? 'Mixed march capacity'
+      : capUsage.hero ? 'Hero march capacity' : 'Squad capacity';
   } else {
+    $('tLim').textContent = '—';
     $('limHint').textContent = '';
   }
 
