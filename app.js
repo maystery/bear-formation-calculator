@@ -111,8 +111,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const cls = key ? 'leadcell' : 'leadcell leadnone';
     return `<div class="${cls}"><img src="${hero.img}" alt=""><span>${hero.name}</span></div>`;
   }
-  const row = (a,lead,b,c,d,e,cls) =>
-    `<tr class="${cls}"><th scope="row">${a}</th><td>${lead}</td><td>${b}</td><td>${c}</td><td>${d}</td><td><b>${e}</b></td></tr>`;
+  const row = (a,lead,b,c,d,e,capacity,cls) =>
+    `<tr class="${cls}"><th scope="row">${a}</th><td>${lead}</td><td>${b}</td><td>${c}</td><td>${d}</td><td><b>${e}</b></td><td>${capacity}</td></tr>`;
+
+  function capacityUse(used, cap){
+    if(!Number.isFinite(cap)){
+      return `<span class="capacity-use unlimited">${fmt(used)} / ∞ · no limit</span>`;
+    }
+    const percent = cap > 0 ? Math.min(100, used / cap * 100) : 0;
+    const hasRoom = used < cap;
+    return `<span class="capacity-use ${hasRoom ? 'has-room' : 'is-full'}">`
+      + `${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</span>`;
+  }
 
   function clearLimits(){
     ['tileInf','tileCav','tileArc','tileSquad','tileCap']
@@ -262,12 +272,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let h = '<thead><tr class="head"><th scope="col">March</th><th scope="col">Leader</th>'
-      + '<th scope="col">Infantry</th><th scope="col">Cavalry</th><th scope="col">Archers</th><th scope="col">Total</th></tr></thead><tbody>';
+      + '<th scope="col">Infantry</th><th scope="col">Cavalry</th><th scope="col">Archers</th>'
+      + '<th scope="col">Total</th><th scope="col">Capacity use</th></tr></thead><tbody>';
     for(let i = 0; i < n; i++){
       const x = rows[i];
-      h += row(i+1, leaderCell(order[i]), fmt(x.inf), fmt(x.cav), fmt(x.arc), fmt(perMarch[i]), 'line');
+      h += row(i+1, leaderCell(order[i]), fmt(x.inf), fmt(x.cav), fmt(x.arc),
+        fmt(perMarch[i]), capacityUse(perMarch[i], caps[i]), 'line');
     }
-    h += '</tbody><tfoot>' + row('Total', '', fmt(tot.inf), fmt(tot.cav), fmt(tot.arc), fmt(grand), 'sumline') + '</tfoot>';
+    h += '</tbody><tfoot>' + row('Total', '', fmt(tot.inf), fmt(tot.cav), fmt(tot.arc),
+      fmt(grand), capacityUse(grand, capTotal), 'sumline') + '</tfoot>';
     $('rows').innerHTML = h;
 
     $('leftover').textContent =
@@ -538,6 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTheme(document.documentElement.dataset.theme || 'auto');
   loadState();
   const sharedSetupLoaded = loadSharedSetup();
+  $('sharedNotice').hidden = !sharedSetupLoaded;
   const initialCalculationValid = calc();
   if(sharedSetupLoaded && initialCalculationValid) saveState();
 });

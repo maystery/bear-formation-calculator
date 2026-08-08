@@ -129,7 +129,7 @@
   .tablewrap{overflow-x:auto}
   .resulttable,.checktable{width:100%;border-collapse:collapse;font-size:14px;
     font-variant-numeric:tabular-nums}
-  .resulttable{min-width:560px}
+  .resulttable{min-width:700px}
   .checktable{min-width:480px}
   .resulttable th,.resulttable td,.checktable th,.checktable td{padding:9px 10px}
   .resulttable th,.checktable th{font-weight:400;text-align:left}
@@ -139,6 +139,10 @@
   .leadcell img{width:24px;height:24px;border-radius:6px;flex:none;object-fit:cover;border:0.5px solid var(--border)}
   .leadcell span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .leadnone{color:var(--text-muted)}
+  .capacity-use{white-space:nowrap}
+  .capacity-use.has-room{color:var(--text-warning)}
+  .capacity-use.is-full{color:var(--text-success);font-weight:500}
+  .capacity-use.unlimited{color:var(--text-muted)}
   .head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
   tr.line{border-top:0.5px solid var(--border)}
   tr.line:hover{background:var(--surface-1)}
@@ -152,6 +156,15 @@
   .callout .ctitle{font-weight:500;font-size:15px;color:var(--text-primary);line-height:1.4}
   .callout .cbody{font-size:14px;line-height:1.6;color:var(--text-secondary)}
   .callout b{font-weight:500}
+  .shared-notice{display:flex;align-items:flex-start;gap:10px;margin:0 0 1rem;
+    padding:0.7rem 0.9rem;border:0.5px solid var(--text-success);border-radius:var(--radius);
+    background:var(--bg-success);color:var(--text-success);font-size:13px;line-height:1.45}
+  .shared-notice[hidden]{display:none}
+  .shared-notice-icon{display:flex;align-items:center;justify-content:center;flex:none;
+    width:20px;height:20px;border-radius:50%;background:var(--text-success);
+    color:var(--bg-success);font-size:12px;font-weight:700}
+  .shared-notice b{display:block}
+  .shared-notice div span{display:block}
   .tilenote{font-size:12px;line-height:1.5;margin-top:6px;opacity:.85}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   .copy-fallback{position:fixed;left:-9999px;top:0;opacity:0}

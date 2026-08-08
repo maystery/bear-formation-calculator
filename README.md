@@ -74,7 +74,7 @@ Every number field accepts shorthand — `566k`, `1.2m` and `281,850` all parse 
 
 Everything you type is saved in the browser, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
 
-Use **Copy formation** to copy the calculated marches as readable text. **Copy setup link** creates a URL containing the troop, ratio, capacity, march and hero settings; opening that link loads the shared setup over the browser's saved values.
+Use **Copy formation** to copy the calculated marches as readable text. The result table also shows each march's used capacity, effective cap and utilization percentage. **Copy setup link** creates a URL containing the troop, ratio, capacity, march and hero settings; opening that link loads the shared setup over the browser's saved values and shows a confirmation banner.
 
 ## Running locally
 
