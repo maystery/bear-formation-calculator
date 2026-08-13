@@ -89,14 +89,15 @@
     <summary class="sechead"><h2 class="sectitle">Heroes</h2><span class="foldsum" id="heroSum"></span></summary>
     <div class="row">
       <div class="tile pro valora">
-        <label class="lbl" for="sav">Valora <b>Savage Advantage</b> · skill 4 · Lv <b id="savOut">10</b> · <b id="savBon">+30k</b> per march</label>
+        <label class="lbl" for="sav">Valora <b>Savage Advantage</b> · 4th skill · Lv. <b id="savOut">10</b> · <b id="savBon">+30k</b> per march</label>
         <div class="sliderwrap">
           <input id="sav" type="range" min="0" max="10" step="1" value="10">
           <div class="scale"><span>0</span><span>10</span></div>
         </div>
       </div>
     </div>
-    <div class="row g4">
+    <div class="hero-priority"><span>Assignment priority</span>Amadeus <b>&rarr;</b> Chenko <b>&rarr;</b> Yeonwoo <b>&rarr;</b> Amane <b>&rarr;</b> Hilde</div>
+    <div class="row g4 hero-grid">
       <label class="tile warm herocard" for="amaOn">
         <input type="checkbox" id="amaOn" class="sr-only">
         <img class="hero" src="heroes/amadeus.png" alt="">
@@ -106,13 +107,23 @@
         </div>
         <span class="pill" id="pill-amadeus"></span>
       </label>
+      <label class="tile warm herocard" for="hildeOn">
+        <input type="checkbox" id="hildeOn" class="sr-only" checked>
+        <img class="hero" src="heroes/hilde.png" alt="">
+        <div class="heroinfo">
+          <div class="heroname">Hilde</div>
+          <div class="herorole" id="role-hilde"></div>
+          <div class="heroreq">Requires Lv. <strong class="skilllevel">5</strong></div>
+        </div>
+        <span class="pill" id="pill-hilde"></span>
+      </label>
       <label class="tile pro herocard" for="chenkoOn">
         <input type="checkbox" id="chenkoOn" class="sr-only" checked>
         <img class="hero" src="heroes/chenko.png" alt="">
         <div class="heroinfo">
           <div class="heroname">Chenko</div>
           <div class="herorole" id="role-chenko"></div>
-          <div class="heroreq">Min lvl 4 skill</div>
+          <div class="heroreq">Requires Lv. <strong class="skilllevel">4</strong></div>
         </div>
         <span class="pill" id="pill-chenko"></span>
       </label>
@@ -122,7 +133,7 @@
         <div class="heroinfo">
           <div class="heroname">Yeonwoo</div>
           <div class="herorole" id="role-yeonwoo"></div>
-          <div class="heroreq">Min lvl 4 skill</div>
+          <div class="heroreq">Requires Lv. <strong class="skilllevel">4</strong></div>
         </div>
         <span class="pill" id="pill-yeonwoo"></span>
       </label>
@@ -132,7 +143,7 @@
         <div class="heroinfo">
           <div class="heroname">Amane</div>
           <div class="herorole" id="role-amane"></div>
-          <div class="heroreq">Min lvl 4 skill</div>
+          <div class="heroreq">Requires Lv. <strong class="skilllevel">4</strong></div>
         </div>
         <span class="pill" id="pill-amane"></span>
       </label>
@@ -176,7 +187,7 @@
     <ol>
       <li>Troop ceiling — the scarcest type relative to its share: <code>T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code></li>
       <li>Each march has its own cap: a march <b>with a hero leader</b> uses <code>base deploy cap + 3,000 × savage_level</code>; a march <b>with no hero</b> is limited to the <code>squad deployment capacity</code>. Set either to 0 to treat it as unlimited.</li>
-      <li>Heroes take marches in the order shown in the Heroes section. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
+      <li>Heroes take marches in this priority order: Amadeus, Chenko, Yeonwoo, Amane, then Hilde. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
       <li>Deployable total: <code>T = min(T_troops, sum of every march cap)</code>. Hero-led rallies are filled first, evenly up to their individual caps. Any troops left after that are distributed evenly among no-hero rallies.</li>
       <li>Within each march: <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code></li>
     </ol>
