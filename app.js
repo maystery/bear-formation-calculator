@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
                      'amaOn','hildeOn','chenkoOn','yeonwooOn','amaneOn','unit'];
   const SAVAGE_PER_LEVEL = 3000;
-  const MAX_MARCHES = 6;
+  const MAX_MARCHES = 7;
   let UNIT = 'k';
   let lastResult = null;
 

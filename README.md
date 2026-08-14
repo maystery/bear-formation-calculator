@@ -1,6 +1,6 @@
 # Bear formation calculator
 
-Splits your troops into up to 6 bear hunt marches at a fixed composition ratio (infantry / cavalry / archers), respecting the deployment capacity of each individual march.
+Splits your troops into up to 7 bear hunt marches at a fixed composition ratio (infantry / cavalry / archers), respecting the deployment capacity of each individual march.
 
 **Live:** https://maystery.github.io/bear-formation-calculator/
 
@@ -46,7 +46,7 @@ Splits your troops into up to 6 bear hunt marches at a fixed composition ratio (
 
 Rounding uses the largest-remainder method, followed by a global reconciliation across marches. Every march sums exactly to its total, and the combined formation never uses more of a troop type than you own.
 
-Marches are capped at 6, the game's limit.
+Marches are capped at 7, the game's limit.
 
 ## Heroes
 
