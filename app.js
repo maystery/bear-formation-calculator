@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     parseAmount,
     parseRatio,
     allocate,
+    allocateSequentially,
     splitByRatio,
     splitMarches,
     wholeTroops,
@@ -24,10 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const RATIO_IDS = ['ri','rc','ra'];
   const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
                      'amaOn','hildeOn','chenkoOn','yeonwooOn','amaneOn','unit'];
+  const FILL_STRATEGIES = ['equal','sequential'];
   const SAVAGE_PER_LEVEL = 3000;
   const MAX_MARCHES = 7;
   let UNIT = 'k';
   let lastResult = null;
+
+  function fillStrategy(){
+    return document.querySelector('input[name="fillStrategy"]:checked').value;
+  }
 
   function setFieldValidity(id, valid, message){
     const el = $(id);
@@ -155,10 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function calc(){
     UNIT = $('unit').value;
     const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value||1)));
+    const strategy = fillStrategy();
 
     const sav = Math.min(10, Math.max(0, Math.floor(+$('sav').value||0)));
     const savBonus = sav * SAVAGE_PER_LEVEL;
     $('nOut').textContent = n;
+    $('fillStrategyHint').textContent = strategy === 'sequential'
+      ? 'Max March 1, then March 2, and continue in order.'
+      : 'Spread available troops as evenly as capacity allows.';
     $('savOut').textContent = sav;
     $('savBon').textContent = '+' + fmt(savBonus);
     const order = leaderOrder();
@@ -230,10 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const T = wholeTroops(Math.min(troopMax, capTotal));
     const bottlenecks = findBottlenecks(troopLimits, capTotal, T);
 
-    // Fill hero-led rallies first. Troops are water-filled evenly within the
-    // hero tier, then any remainder is water-filled across no-hero rallies.
-    const priorities = caps.map((_, i) => order[i] ? 1 : 0);
-    const perMarch = allocate(T, caps, priorities);
+    const perMarch = strategy === 'sequential'
+      ? allocateSequentially(T, caps)
+      : allocate(T, caps);
     const rows = splitMarches(perMarch, r);
     const tot = {
       inf:rows.reduce((a, x) => a + x.inf, 0),
@@ -291,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('leftover').textContent =
       `Left at home: ${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
 
-    lastResult = {r, S, order, perMarch, rows, tot, grand};
+    lastResult = {r, S, order, strategy, perMarch, rows, tot, grand};
     $('copyFormation').disabled = false;
 
     check(r);
@@ -365,9 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formationText(){
     if(!lastResult) return '';
-    const {r, S, order, perMarch, rows, tot, grand} = lastResult;
+    const {r, S, order, strategy, perMarch, rows, tot, grand} = lastResult;
     const ratio = [r.inf, r.cav, r.arc].map(x => trim(x * 100)).join(' / ');
-    const lines = [`Bear formation · ${ratio}`, ''];
+    const strategyLabel = strategy === 'sequential' ? 'Fill in order' : 'Balance marches';
+    const lines = [`Bear formation · ${ratio}`, `Filling: ${strategyLabel}`, ''];
     rows.forEach((march, i) => {
       const leader = HEROES[order[i] || 'none'].name;
       lines.push(`March ${i + 1} · ${leader}: ${fullFmt(march.inf)} infantry · ${fullFmt(march.cav)} cavalry · ${fullFmt(march.arc)} archers · ${fullFmt(perMarch[i])} total`);
@@ -386,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = $(id);
       url.searchParams.set(id, el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value);
     });
+    url.searchParams.set('fillStrategy', fillStrategy());
     return url.href;
   }
 
@@ -408,6 +419,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       loaded = true;
     });
+    const strategy = params.get('fillStrategy');
+    if(FILL_STRATEGIES.includes(strategy)){
+      document.querySelector(`input[name="fillStrategy"][value="${strategy}"]`).checked = true;
+      loaded = true;
+    }
     return loaded;
   }
 
@@ -490,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = $(id);
       o[id] = el.type === 'checkbox' ? el.checked : el.value;
     });
+    o.fillStrategy = fillStrategy();
     FOLDS.forEach(id => { o[id] = $(id).open; });
     o.theme = theme;
     store.write(o);
@@ -510,6 +527,9 @@ document.addEventListener('DOMContentLoaded', () => {
         el.value = String(o[id]);
       }
     });
+    if(FILL_STRATEGIES.includes(o.fillStrategy)){
+      document.querySelector(`input[name="fillStrategy"][value="${o.fillStrategy}"]`).checked = true;
+    }
     FOLDS.forEach(id => { if(typeof o[id] === 'boolean') $(id).open = o[id]; });
     if(o.theme) applyTheme(o.theme);
   }
@@ -536,6 +556,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function update(){ calc(); saveState(); }
 
   IDS.forEach(i => { $(i).addEventListener('input', update); $(i).addEventListener('change', update); });
+  document.querySelectorAll('input[name="fillStrategy"]')
+    .forEach(el => { el.addEventListener('input', update); el.addEventListener('change', update); });
   FOLDS.forEach(i => $(i).addEventListener('toggle', saveState));
 
   $('the').addEventListener('click', () => {
@@ -548,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = new URL(window.location.href);
     const hasSharedSetup = url.searchParams.get('setup') === '1';
     url.searchParams.delete('setup');
+    url.searchParams.delete('fillStrategy');
     SHARE_IDS.forEach(id => url.searchParams.delete(id));
     if(hasSharedSetup) location.replace(url.href);
     else location.reload();

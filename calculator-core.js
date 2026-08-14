@@ -96,6 +96,16 @@
     return allocation;
   }
 
+  function allocateSequentially(total, caps){
+    const allocation = new Array(caps.length).fill(0);
+    let remaining = Math.floor(total);
+    for(let i = 0; i < caps.length && remaining > 0; i++){
+      allocation[i] = Math.min(remaining, caps[i]);
+      remaining -= allocation[i];
+    }
+    return allocation;
+  }
+
   function splitByRatio(total, ratio){
     const raw = Object.fromEntries(TROOP_KEYS.map(k => [k, total * ratio[k]]));
     const output = Object.fromEntries(TROOP_KEYS.map(k => [k, Math.floor(raw[k])]));
@@ -158,6 +168,7 @@
     parseAmount,
     parseRatio,
     allocate,
+    allocateSequentially,
     splitByRatio,
     splitMarches,
     wholeTroops,

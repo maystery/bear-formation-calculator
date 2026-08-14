@@ -6,6 +6,7 @@ const {
   parseAmount,
   parseRatio,
   allocate,
+  allocateSequentially,
   splitByRatio,
   splitMarches,
   wholeTroops,
@@ -55,6 +56,17 @@ test('allocate still water-fills evenly within each priority tier', () => {
   assert.deepEqual(
     allocate(250000, [80000,169310,98900,98900], [1,1,0,0]),
     [80000,169310,345,345]
+  );
+});
+
+test('allocateSequentially fills each march before moving to the next', () => {
+  assert.deepEqual(
+    allocateSequentially(300000, [169310,169310,98900]),
+    [169310,130690,0]
+  );
+  assert.deepEqual(
+    allocateSequentially(400000, [80000,Infinity,98900]),
+    [80000,320000,0]
   );
 });
 

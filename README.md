@@ -27,14 +27,10 @@ Splits your troops into up to 7 bear hunt marches at a fixed composition ratio (
    T = min(T_troops, Σ cap_i)
    ```
 
-   Hero-led rallies receive the available troops first:
+   The selected filling strategy decides how that total is distributed:
 
-   ```
-   T_hero = min(T, Σ hero caps)
-   T_none = T - T_hero
-   ```
-
-   `T_hero` is distributed evenly among the hero rallies until they reach their individual caps. Only then is `T_none` distributed among no-hero rallies. Water-filling within each group keeps its rallies balanced when their caps differ.
+   - **Balance marches** water-fills every march evenly while respecting its individual cap.
+   - **Fill in order** fills March 1 to its cap, then March 2, and continues in order until the available troops run out.
 
 4. **Per march** — each march splits at the ratio:
 
@@ -79,9 +75,9 @@ Every number field accepts shorthand — `566k`, `1.2m` and `281,850` all parse 
 
 ## Interface
 
-Everything you type is saved in the browser, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
+Everything you type is saved in the browser, including the filling strategy, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
 
-Use **Copy formation** to copy the calculated marches as readable text. The result table also shows each march's used capacity, effective cap and utilization percentage. **Copy setup link** creates a URL containing the troop, ratio, capacity, march and hero settings; opening that link loads the shared setup over the browser's saved values and shows a confirmation banner.
+Use **Copy formation** to copy the calculated marches as readable text. The result table also shows each march's used capacity, effective cap and utilization percentage. **Copy setup link** creates a URL containing the troop, ratio, capacity, march, filling strategy and hero settings; opening that link loads the shared setup over the browser's saved values and shows a confirmation banner.
 
 ## Running locally
 
