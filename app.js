@@ -35,10 +35,29 @@ document.addEventListener('DOMContentLoaded', () => {
     return document.querySelector('input[name="fillStrategy"]:checked').value;
   }
 
+  // keep slider fill, tick highlight and thumb labels in sync with values
+  function syncSliders(){
+    [['n',1,7],['sav',0,10]].forEach(([id,min,max]) => {
+      const el = $(id);
+      const v = Math.min(max, Math.max(min, Math.floor(+el.value || min)));
+      el.style.setProperty('--pct', ((v - min) / (max - min) * 100) + '%');
+      el.setAttribute('aria-valuetext', String(v));
+    });
+    const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value || 1)));
+    document.querySelectorAll('#nScale span').forEach((span, i) => {
+      span.classList.toggle('on', i + 1 <= n);
+    });
+  }
+
   function setFieldValidity(id, valid, message){
     const el = $(id);
     if(valid) el.removeAttribute('aria-invalid');
-    else el.setAttribute('aria-invalid', 'true');
+    else{
+      el.setAttribute('aria-invalid', 'true');
+      el.classList.remove('shake');
+      void el.offsetWidth;
+      el.classList.add('shake');
+    }
     el.setCustomValidity(valid ? '' : message);
   }
 
@@ -124,12 +143,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function capacityUse(used, cap){
     if(!Number.isFinite(cap)){
-      return `<span class="capacity-use unlimited">${fmt(used)} / ∞ · no limit</span>`;
+      return `<div class="capacity-use unlimited">${fmt(used)} / ∞ · no limit</div>`;
     }
     const percent = cap > 0 ? Math.min(100, used / cap * 100) : 0;
     const hasRoom = used < cap;
-    return `<span class="capacity-use ${hasRoom ? 'has-room' : 'is-full'}">`
-      + `${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</span>`;
+    return `<div class="capacity-use ${hasRoom ? 'has-room' : 'is-full'}">`
+      + `<div>${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</div>`
+      + `<div class="bar" aria-hidden="true"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
+  }
+
+  function setVal(id, text){
+    const el = $(id);
+    if(el.textContent === text) return;
+    el.textContent = text;
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
   }
 
   function clearLimits(){
@@ -142,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     clearLimits();
     lastResult = null;
     $('copyFormation').disabled = true;
-    $('tTotal').textContent = '–';
-    $('tLim').textContent = '–';
+    setVal('tTotal', '–');
+    setVal('tLim', '–');
     $('limHint').textContent = '';
     $('rows').innerHTML = '';
     $('leftover').textContent = '';
@@ -151,15 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
     $('checkError').textContent = '';
     $('verdict').innerHTML = '';
     if(clearCapacity){
-      $('tCap').textContent = '–';
+      setVal('tCap', '–');
       $('capBreak').textContent = '';
-      $('tNoCap').textContent = '–';
+      setVal('tNoCap', '–');
       $('capSum').textContent = '';
     }
   }
 
   function calc(){
     UNIT = $('unit').value;
+    syncSliders();
     const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value||1)));
     const strategy = fillStrategy();
 
@@ -198,10 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // a march with no hero is limited to the squad deployment capacity
     const capHero = baseCap > 0 ? baseCap + savBonus : Infinity;
     const capNone = squadCap > 0 ? squadCap : Infinity;
-    $('tCap').textContent = isFinite(capHero) ? fmt(capHero) : '∞';
+    setVal('tCap', isFinite(capHero) ? fmt(capHero) : '∞');
     $('capBreak').textContent = (isFinite(capHero) && savBonus > 0)
       ? fmt(baseCap) + ' + ' + fmt(savBonus) : '';
-    $('tNoCap').textContent = isFinite(capNone) ? fmt(capNone) : '∞';
+    setVal('tNoCap', isFinite(capNone) ? fmt(capNone) : '∞');
     $('capSum').textContent = `squad ${isFinite(capNone) ? fmt(capNone) : '∞'}`
       + ` · march ${isFinite(capHero) ? fmt(capHero) : '∞'}`;
 
@@ -251,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const grand = tot.inf + tot.cav + tot.arc;
 
-    $('tTotal').textContent = fmt(grand);
+    setVal('tTotal', fmt(grand));
 
     // Highlight every constraint that prevents one more whole troop from being
     // deployed, but only highlight capacity sources used by an active march.
@@ -265,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const troopLabels = bottlenecks.troops.map(x => x.label);
     const labels = [...troopLabels];
     if(bottlenecks.capacity) labels.push('Deployment capacity');
-    $('tLim').textContent = labels.length === 1 ? labels[0] : 'Multiple';
+    setVal('tLim', labels.length === 1 ? labels[0] : 'Multiple');
 
     if(bottlenecks.troops.length && bottlenecks.capacity){
       $('tileLim').classList.add('bn-mixed');
@@ -281,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ? 'Mixed march capacity'
         : capUsage.hero ? 'Hero march capacity' : 'Squad capacity';
     } else {
-      $('tLim').textContent = '—';
+      setVal('tLim', '—');
       $('limHint').textContent = '';
     }
 
@@ -550,6 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   $('theme').addEventListener('click', () => {
     applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
+    $('themeIcon').animate([
+      {transform:'rotate(-100deg) scale(.6)', opacity:0},
+      {transform:'rotate(0deg) scale(1)', opacity:1}
+    ], {duration:320, easing:'ease-out'});
     saveState();
   });
 
