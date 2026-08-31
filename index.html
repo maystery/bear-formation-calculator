@@ -6,6 +6,7 @@
 <title>Bear Formation Calculator</title>
 <link rel="stylesheet" href="styles.css">
 <script src="calculator-core.js"></script>
+<script src="hero-ui.js"></script>
 <script src="app.js"></script>
 </head>
 <body>
@@ -35,57 +36,60 @@
     <div class="sechead">
       <h2 class="sectitle">Troops &amp; ratio</h2>
       <div class="actions">
-        <button id="the" type="button">THE <span class="preset-ratio">· 10 / 10 / 80</span></button>
+        <span class="setup-summary" id="setupSummary" aria-live="polite">Formation 10 / 10 / 80 · 5 marches</span>
+        <button id="the" class="preset-button" type="button" title="Set the 10 / 10 / 80 ratio">THE preset</button>
         <button id="copySetup" type="button">Copy setup link</button>
         <button id="reset" type="button" title="Clear saved values">Reset</button>
       </div>
     </div>
-    <div class="row g4">
-      <div class="tile" id="tileInf"><label class="lbl lblrow" for="si"><span>Infantry</span><span class="limitbadge">Limit</span></label><input id="si" type="text" inputmode="decimal" value="281.85k"></div>
-      <div class="tile" id="tileCav"><label class="lbl lblrow" for="sc"><span>Cavalry</span><span class="limitbadge">Limit</span></label><input id="sc" type="text" inputmode="decimal" value="292.799k"></div>
-      <div class="tile" id="tileArc"><label class="lbl lblrow" for="sa"><span>Archers</span><span class="limitbadge">Limit</span></label><input id="sa" type="text" inputmode="decimal" value="566.04k"></div>
-      <div class="tile"><label class="lbl" for="unit">Units</label>
-        <select id="unit"><option value="k" selected>k / m short</option><option value="full">Full numbers</option></select></div>
-    </div>
-    <div class="row g2">
-      <div class="tile">
-        <div class="lbl">Ratio %</div>
-        <div class="ratio">
-          <label><span class="sr-only">Infantry percent</span><input id="ri" type="number" min="0" step="any" value="10"></label>
-          <label><span class="sr-only">Cavalry percent</span><input id="rc" type="number" min="0" step="any" value="10"></label>
-          <label><span class="sr-only">Archer percent</span><input id="ra" type="number" min="0" step="any" value="80"></label>
-        </div>
-        <div class="ratiokeys"><div>Inf</div><div>Cav</div><div>Arc</div></div>
-        <div class="warnmsg" id="warn"></div>
+    <div class="control-panel">
+      <div class="row g4">
+        <div class="tile" id="tileInf"><label class="lbl lblrow" for="si"><span>Infantry</span><span class="limitbadge">Limit</span></label><input id="si" type="text" inputmode="decimal" value="281.85k"></div>
+        <div class="tile" id="tileCav"><label class="lbl lblrow" for="sc"><span>Cavalry</span><span class="limitbadge">Limit</span></label><input id="sc" type="text" inputmode="decimal" value="292.799k"></div>
+        <div class="tile" id="tileArc"><label class="lbl lblrow" for="sa"><span>Archers</span><span class="limitbadge">Limit</span></label><input id="sa" type="text" inputmode="decimal" value="566.04k"></div>
+        <div class="tile"><label class="lbl" for="unit">Units</label>
+          <select id="unit"><option value="k" selected>k / m short</option><option value="full">Full numbers</option></select></div>
       </div>
-      <div class="tile">
-        <div class="march-head">
-          <label class="lbl" for="n">Marches: <b id="nOut" class="primary-value">5</b> <span class="muted">/ 7 max</span></label>
-          <div class="march-composition" aria-label="Maximum: 1 rally leader and 6 joiners">
-            <span>1 leader</span><span>6 joiners</span>
+      <div class="row g2">
+        <div class="tile">
+          <div class="lbl">Ratio %</div>
+          <div class="ratio">
+            <label><span class="sr-only">Infantry percent</span><input id="ri" type="number" min="0" step="any" value="10"></label>
+            <label><span class="sr-only">Cavalry percent</span><input id="rc" type="number" min="0" step="any" value="10"></label>
+            <label><span class="sr-only">Archer percent</span><input id="ra" type="number" min="0" step="any" value="80"></label>
           </div>
+          <div class="ratiokeys"><div>Inf</div><div>Cav</div><div>Arc</div></div>
+          <div class="warnmsg" id="warn"></div>
         </div>
-        <div class="sliderwrap">
-          <input id="n" type="range" min="1" max="7" step="1" value="5">
-          <div class="scale ticks" id="nScale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="row strategy-row">
-      <div class="tile">
-        <fieldset class="strategy" aria-describedby="fillStrategyHint">
-          <legend class="lbl">Filling strategy</legend>
-          <div class="strategy-content">
-            <div class="segmented">
-              <label><input class="sr-only" type="radio" name="fillStrategy" value="equal" checked>Balance marches</label>
-              <label><input class="sr-only" type="radio" name="fillStrategy" value="sequential">Fill in order</label>
+        <div class="tile">
+          <div class="march-head">
+            <label class="lbl" for="n">Marches: <b id="nOut" class="primary-value">5</b> <span class="muted">/ 7 max</span></label>
+            <div class="march-composition" aria-label="Maximum: 1 rally leader and 6 joiners">
+              <span>1 leader</span><span>6 joiners</span>
             </div>
-            <div class="tilenote" id="fillStrategyHint">Spread available troops as evenly as capacity allows.</div>
           </div>
-        </fieldset>
+          <div class="sliderwrap">
+            <input id="n" type="range" min="1" max="7" step="1" value="5">
+            <div class="scale ticks" id="nScale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+          </div>
+        </div>
       </div>
+      <div class="row strategy-row">
+        <div class="tile">
+          <fieldset class="strategy" aria-describedby="fillStrategyHint">
+            <legend class="lbl">Filling strategy</legend>
+            <div class="strategy-content">
+              <div class="segmented">
+                <label><input class="sr-only" type="radio" name="fillStrategy" value="equal" checked>Balance marches</label>
+                <label><input class="sr-only" type="radio" name="fillStrategy" value="sequential">Fill in order</label>
+              </div>
+              <div class="tilenote" id="fillStrategyHint">Spread available troops as evenly as capacity allows.</div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <div class="warnmsg" id="inputError" role="alert"></div>
     </div>
-    <div class="warnmsg" id="inputError" role="alert"></div>
   </section>
 
   <details class="section fold" id="foldCap" open>
@@ -108,7 +112,10 @@
     <summary class="sechead"><h2 class="sectitle">Heroes</h2><span class="foldsum" id="heroSum"></span></summary>
     <div class="row">
       <div class="tile pro valora">
-        <label class="lbl" for="sav">Valora <b>Savage Advantage</b> · 4th skill · Lv. <b id="savOut">10</b> · <b id="savBon">+30k</b> per march</label>
+        <div class="valora-copy">
+          <div class="valora-head"><label class="lbl" for="sav">Valora <b>Savage Advantage</b></label><span>Lv. <b id="savOut">10</b></span></div>
+          <div class="valora-meta">4th skill · <b id="savBon">+30k</b> per march</div>
+        </div>
         <div class="sliderwrap">
           <input id="sav" type="range" min="0" max="10" step="1" value="10">
           <div class="scale"><span>0</span><span>10</span></div>
@@ -116,100 +123,47 @@
       </div>
     </div>
     <div class="hero-priority"><span>Assignment priority</span>Amadeus <b>&rarr;</b> Chenko <b>&rarr;</b> Yeonwoo <b>&rarr;</b> Amane <b>&rarr;</b> Margot <b>&rarr;</b> Hilde</div>
-    <div class="row g4 hero-grid">
-      <label class="tile warm herocard rank-card rank-gold" for="amaOn">
-        <input type="checkbox" id="amaOn" class="sr-only">
-        <img class="hero" src="heroes/amadeus.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Amadeus</div>
-          <div class="herorole" id="role-amadeus"></div>
-        </div>
-        <span class="pill" id="pill-amadeus"></span>
-      </label>
-      <label class="tile pro herocard rank-card rank-silver" for="chenkoOn">
-        <input type="checkbox" id="chenkoOn" class="sr-only" checked>
-        <img class="hero" src="heroes/chenko.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Chenko</div>
-          <div class="herorole" id="role-chenko"></div>
-          <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
-        </div>
-        <span class="pill" id="pill-chenko"></span>
-      </label>
-      <label class="tile pro herocard rank-card rank-bronze" for="yeonwooOn">
-        <input type="checkbox" id="yeonwooOn" class="sr-only" checked>
-        <img class="hero" src="heroes/yeonwoo.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Yeonwoo</div>
-          <div class="herorole" id="role-yeonwoo"></div>
-          <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
-        </div>
-        <span class="pill" id="pill-yeonwoo"></span>
-      </label>
-      <label class="tile pro herocard rank-neutral" for="amaneOn">
-        <input type="checkbox" id="amaneOn" class="sr-only" checked>
-        <img class="hero" src="heroes/amane.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Amane</div>
-          <div class="herorole" id="role-amane"></div>
-          <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
-        </div>
-        <span class="pill" id="pill-amane"></span>
-      </label>
-      <label class="tile warm herocard rank-neutral" for="margotOn">
-        <input type="checkbox" id="margotOn" class="sr-only" checked>
-        <img class="hero" src="heroes/margot.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Margot</div>
-          <div class="herorole" id="role-margot"></div>
-          <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
-        </div>
-        <span class="pill" id="pill-margot"></span>
-      </label>
-      <label class="tile warm herocard rank-neutral" for="hildeOn">
-        <input type="checkbox" id="hildeOn" class="sr-only" checked>
-        <img class="hero" src="heroes/hilde.png" alt="">
-        <div class="heroinfo">
-          <div class="heroname">Hilde</div>
-          <div class="herorole" id="role-hilde"></div>
-          <div class="heroreq" title="Requires the first Expedition skill at level 5 or higher" aria-label="Requires the first Expedition skill at level 5 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">5</strong></div>
-        </div>
-        <span class="pill" id="pill-hilde"></span>
-      </label>
-    </div>
+    <div class="hero-grid" id="heroGrid"></div>
     <div class="hint" id="heroHint"></div>
   </details>
 
   <section class="section">
     <div class="sechead"><h2 class="sectitle">Result</h2><button id="copyFormation" type="button" disabled>Copy formation</button></div>
     <div class="row g4">
-      <div class="tile accent metric"><div class="lbl">Total sent</div><div class="val" id="tTotal">–</div></div>
-      <div class="tile metric"><div class="lbl">Hero march cap</div><div class="val" id="tCap">–</div>
+      <div class="tile accent metric metric-total"><div class="lbl">Total sent</div><div class="val" id="tTotal">–</div></div>
+      <div class="tile metric metric-cap"><div class="lbl">Hero march cap</div><div class="val" id="tCap">–</div>
         <div id="capBreak" class="capbreak"></div></div>
-      <div class="tile metric"><div class="lbl">No-hero cap</div><div class="val" id="tNoCap">–</div></div>
-      <div class="tile metric" id="tileLim"><div class="lbl">Bottleneck</div><div class="val bottleneck-value" id="tLim">–</div>
+      <div class="tile metric metric-cap"><div class="lbl">No-hero cap</div><div class="val" id="tNoCap">–</div></div>
+      <div class="tile metric metric-bottleneck" id="tileLim"><div class="lbl">Bottleneck</div>
+        <div class="bottleneck-line"><span class="bottleneck-icon" aria-hidden="true">!</span><div class="val bottleneck-value" id="tLim">–</div></div>
         <div class="limhint" id="limHint"></div></div>
     </div>
 
     <div class="tablewrap"><table class="resulttable" id="rows" aria-live="polite"></table></div>
-    <div class="note" id="leftover"></div>
+    <div class="note leftover-strip" id="leftover" hidden>
+      <span class="leftover-label">Remaining troops</span><span id="leftoverValues"></span>
+    </div>
     <div class="hint">Type <code>566k</code>, <code>1.2m</code> or <code>566,040</code> in any number field.</div>
   </section>
 
-  <div class="sechead"><h2 class="sectitle">Check a march</h2></div>
-  <p class="sub check-sub">Paste the troop numbers from a march and see whether they follow the ratio above.</p>
+  <section class="section check-section">
+    <div class="sechead"><h2 class="sectitle">Check a march</h2></div>
+    <p class="sub check-sub">Paste the troop numbers from a march and see whether they follow the ratio above.</p>
 
-  <div class="row g4">
-    <div class="tile"><label class="lbl" for="ci">Infantry</label><input id="ci" type="text" inputmode="decimal" value="0"></div>
-    <div class="tile"><label class="lbl" for="cc">Cavalry</label><input id="cc" type="text" inputmode="decimal" value="0"></div>
-    <div class="tile"><label class="lbl" for="ca">Archers</label><input id="ca" type="text" inputmode="decimal" value="0"></div>
-    <div class="tile"><label class="lbl" for="tol">Tolerance ± pp</label><input id="tol" type="text" inputmode="decimal" value="3"></div>
-  </div>
+    <div class="control-panel check-panel">
+      <div class="row g4">
+        <div class="tile"><label class="lbl" for="ci">Infantry</label><input id="ci" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile"><label class="lbl" for="cc">Cavalry</label><input id="cc" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile"><label class="lbl" for="ca">Archers</label><input id="ca" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile"><label class="lbl" for="tol">Tolerance ± pp</label><input id="tol" type="text" inputmode="decimal" value="3"></div>
+      </div>
+      <div class="warnmsg" id="checkError" role="alert"></div>
+    </div>
 
-  <div class="warnmsg" id="checkError" role="alert"></div>
-  <div class="tablewrap"><table class="checktable" id="checkRows" aria-live="polite"></table></div>
-  <div id="verdict"></div>
-  <div class="sr-only" id="copyStatus" role="status" aria-live="polite"></div>
+    <div class="tablewrap check-results"><table class="checktable" id="checkRows" aria-live="polite"></table></div>
+    <div id="verdict"></div>
+    <div class="sr-only" id="copyStatus" role="status" aria-live="polite"></div>
+  </section>
 
   <details class="help">
     <summary>How it's calculated</summary>

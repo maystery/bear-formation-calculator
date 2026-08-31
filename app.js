@@ -17,14 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
     wholeTroops,
     findBottlenecks
   } = BearCalcCore;
+  const {HEROES, HERO_SLOTS, renderHeroCards} = BearHeroUI;
+  const heroInputIds = HERO_SLOTS.map(hero => hero.id);
+  $('heroGrid').innerHTML = renderHeroCards();
+
   const IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
-               'amaOn','hildeOn','margotOn','chenkoOn','yeonwooOn','amaneOn','unit','ci','cc','ca','tol'];
+               ...heroInputIds,'unit','ci','cc','ca','tol'];
   const FOLDS = ['foldCap','foldHeroes'];
   const MAIN_AMOUNT_IDS = ['si','sc','sa','squad','cap'];
   const CHECK_AMOUNT_IDS = ['ci','cc','ca'];
   const RATIO_IDS = ['ri','rc','ra'];
   const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
-                     'amaOn','hildeOn','margotOn','chenkoOn','yeonwooOn','amaneOn','unit'];
+                     ...heroInputIds,'unit'];
   const FILL_STRATEGIES = ['equal','sequential'];
   const SAVAGE_PER_LEVEL = 3000;
   const MAX_MARCHES = 7;
@@ -91,25 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(Math.abs(x) >= 1e6) return trim(x/1e6) + 'm';
     return trim(x/1e3) + 'k';
   };
-  const HEROES = {
-    none:    {name:'No hero', img:'heroes/none.png'},
-    amadeus: {name:'Amadeus', img:'heroes/amadeus.png'},
-    hilde:   {name:'Hilde',   img:'heroes/hilde.png'},
-    margot:  {name:'Margot',  img:'heroes/margot.png'},
-    chenko:  {name:'Chenko',  img:'heroes/chenko.png'},
-    yeonwoo: {name:'Yeonwoo', img:'heroes/yeonwoo.png'},
-    amane:   {name:'Amane',   img:'heroes/amane.png'}
-  };
-  // marches are handed out in this order; unticked heroes drop out of the queue
-  // and their march falls back to the no-hero (squad) capacity
-  const HERO_SLOTS = [
-    {key:'amadeus', id:'amaOn'},
-    {key:'chenko',  id:'chenkoOn'},
-    {key:'yeonwoo', id:'yeonwooOn'},
-    {key:'amane',   id:'amaneOn'},
-    {key:'margot',  id:'margotOn'},
-    {key:'hilde',   id:'hildeOn'}
-  ];
   function leaderOrder(){
     return HERO_SLOTS.filter(h => $(h.id).checked).map(h => h.key);
   }
@@ -123,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       $(h.id).closest('.herocard').classList.toggle('on', on);
       $('pill-' + h.key).textContent = on ? (leads ? 'March ' + (slot + 1) : 'No march') : 'Disabled';
       $('role-' + h.key).textContent = on
-        ? (leads ? 'Hero deploy cap' : 'Needs another march')
+        ? (leads ? HEROES[h.key].deployCap : 'Needs another march')
         : 'Left out of the split';
     });
     const led = Math.min(order.length, n);
@@ -138,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function leaderCell(key){
     const hero = HEROES[key || 'none'];
     const cls = key ? 'leadcell' : 'leadcell leadnone';
-    return `<div class="${cls}"><img src="${hero.img}" alt=""><span>${hero.name}</span></div>`;
+    return `<div class="${cls}"><img src="${hero.avatar}" alt=""><span>${hero.name}</span></div>`;
   }
   const row = (a,lead,b,c,d,e,capacity,cls) =>
     `<tr class="${cls}"><th scope="row">${a}</th><td>${lead}</td><td>${b}</td><td>${c}</td><td>${d}</td><td><b>${e}</b></td><td>${capacity}</td></tr>`;
@@ -149,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const percent = cap > 0 ? Math.min(100, used / cap * 100) : 0;
     const hasRoom = used < cap;
-    return `<div class="capacity-use ${hasRoom ? 'has-room' : 'is-full'}">`
+    const state = used <= 0 ? 'is-empty' : hasRoom ? 'has-room' : 'is-full';
+    return `<div class="capacity-use ${state}">`
       + `<div>${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</div>`
       + `<div class="bar" aria-hidden="true"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
   }
@@ -177,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setVal('tLim', '–');
     $('limHint').textContent = '';
     $('rows').innerHTML = '';
-    $('leftover').textContent = '';
+    $('leftoverValues').textContent = '';
+    $('leftover').hidden = true;
     $('checkRows').innerHTML = '';
     $('checkError').textContent = '';
     $('verdict').innerHTML = '';
@@ -208,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const parsedRatios = readRatios();
     const parsedMain = readAmounts(MAIN_AMOUNT_IDS);
+    const summaryRatio = parsedRatios.invalid.length
+      ? 'needs attention'
+      : [parsedRatios.values.ri, parsedRatios.values.rc, parsedRatios.values.ra].map(trim).join(' / ');
+    $('setupSummary').textContent = `Formation ${summaryRatio} · ${n} march${n === 1 ? '' : 'es'}`;
     const invalidCount = parsedRatios.invalid.length + parsedMain.invalid.length;
     if(invalidCount){
       $('warn').textContent = parsedRatios.invalid.length
@@ -323,14 +314,15 @@ document.addEventListener('DOMContentLoaded', () => {
     for(let i = 0; i < n; i++){
       const x = rows[i];
       h += row(i+1, leaderCell(order[i]), fmt(x.inf), fmt(x.cav), fmt(x.arc),
-        fmt(perMarch[i]), capacityUse(perMarch[i], caps[i]), 'line');
+        fmt(perMarch[i]), capacityUse(perMarch[i], caps[i]), order[i] ? 'line' : 'line no-hero-row');
     }
     h += '</tbody><tfoot>' + row('Total', '', fmt(tot.inf), fmt(tot.cav), fmt(tot.arc),
       fmt(grand), capacityUse(grand, capTotal), 'sumline') + '</tfoot>';
     $('rows').innerHTML = h;
 
-    $('leftover').textContent =
-      `Left at home: ${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
+    $('leftoverValues').textContent =
+      `${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
+    $('leftover').hidden = false;
 
     lastResult = {r, S, order, strategy, perMarch, rows, tot, grand};
     $('copyFormation').disabled = false;
