@@ -46,9 +46,9 @@ Marches are capped at 7, the game's limit.
 
 ## Heroes
 
-Five heroes can lead a march: **Amadeus**, **Hilde**, **Chenko**, **Yeonwoo** and **Amane**. Leader priority is **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, then **Hilde**, and each hero you enable converts a march from the squad cap to the larger hero cap.
+Six heroes can lead a march: **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, **Margot** and **Hilde**. They take marches in that priority order, and each hero you enable converts a march from the squad cap to the larger hero cap.
 
-Untick a hero to drop them from the split — if you don't own them, haven't levelled their skill, or just want to see the numbers without them. Hilde needs her first Expedition skill at **level 5 minimum**, while Chenko, Yeonwoo and Amane need their first Expedition skill at **level 4 minimum**, to be worth counting. Enable more heroes than you have marches and the extras simply sit out.
+Untick a hero to drop them from the split — if you don't own them, haven't levelled their skill, or just want to see the numbers without them. Hilde needs her first Expedition skill at **level 5 minimum**, while Margot, Chenko, Yeonwoo and Amane need theirs at **level 4 minimum**, to be worth counting. Enable more heroes than you have marches and the extras simply sit out.
 
 ## Example
 

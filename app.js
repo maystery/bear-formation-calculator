@@ -18,13 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     findBottlenecks
   } = BearCalcCore;
   const IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
-               'amaOn','hildeOn','chenkoOn','yeonwooOn','amaneOn','unit','ci','cc','ca','tol'];
+               'amaOn','hildeOn','margotOn','chenkoOn','yeonwooOn','amaneOn','unit','ci','cc','ca','tol'];
   const FOLDS = ['foldCap','foldHeroes'];
   const MAIN_AMOUNT_IDS = ['si','sc','sa','squad','cap'];
   const CHECK_AMOUNT_IDS = ['ci','cc','ca'];
   const RATIO_IDS = ['ri','rc','ra'];
   const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
-                     'amaOn','hildeOn','chenkoOn','yeonwooOn','amaneOn','unit'];
+                     'amaOn','hildeOn','margotOn','chenkoOn','yeonwooOn','amaneOn','unit'];
   const FILL_STRATEGIES = ['equal','sequential'];
   const SAVAGE_PER_LEVEL = 3000;
   const MAX_MARCHES = 7;
@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     none:    {name:'No hero', img:'heroes/none.png'},
     amadeus: {name:'Amadeus', img:'heroes/amadeus.png'},
     hilde:   {name:'Hilde',   img:'heroes/hilde.png'},
+    margot:  {name:'Margot',  img:'heroes/margot.png'},
     chenko:  {name:'Chenko',  img:'heroes/chenko.png'},
     yeonwoo: {name:'Yeonwoo', img:'heroes/yeonwoo.png'},
     amane:   {name:'Amane',   img:'heroes/amane.png'}
@@ -106,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     {key:'chenko',  id:'chenkoOn'},
     {key:'yeonwoo', id:'yeonwooOn'},
     {key:'amane',   id:'amaneOn'},
+    {key:'margot',  id:'margotOn'},
     {key:'hilde',   id:'hildeOn'}
   ];
   function leaderOrder(){

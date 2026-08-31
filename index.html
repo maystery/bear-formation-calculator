@@ -115,7 +115,7 @@
         </div>
       </div>
     </div>
-    <div class="hero-priority"><span>Assignment priority</span>Amadeus <b>&rarr;</b> Chenko <b>&rarr;</b> Yeonwoo <b>&rarr;</b> Amane <b>&rarr;</b> Hilde</div>
+    <div class="hero-priority"><span>Assignment priority</span>Amadeus <b>&rarr;</b> Chenko <b>&rarr;</b> Yeonwoo <b>&rarr;</b> Amane <b>&rarr;</b> Margot <b>&rarr;</b> Hilde</div>
     <div class="row g4 hero-grid">
       <label class="tile warm herocard rank-card rank-gold" for="amaOn">
         <input type="checkbox" id="amaOn" class="sr-only">
@@ -155,6 +155,16 @@
           <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
         </div>
         <span class="pill" id="pill-amane"></span>
+      </label>
+      <label class="tile warm herocard rank-neutral" for="margotOn">
+        <input type="checkbox" id="margotOn" class="sr-only" checked>
+        <img class="hero" src="heroes/margot.png" alt="">
+        <div class="heroinfo">
+          <div class="heroname">Margot</div>
+          <div class="herorole" id="role-margot"></div>
+          <div class="heroreq" title="Requires the first Expedition skill at level 4 or higher" aria-label="Requires the first Expedition skill at level 4 or higher">Exp. Skill 1 &ge; Lv. <strong class="skilllevel">4</strong></div>
+        </div>
+        <span class="pill" id="pill-margot"></span>
       </label>
       <label class="tile warm herocard rank-neutral" for="hildeOn">
         <input type="checkbox" id="hildeOn" class="sr-only" checked>
@@ -206,7 +216,7 @@
     <ol>
       <li>Troop ceiling — the scarcest type relative to its share: <code>T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code></li>
       <li>Each march has its own cap: a march <b>with a hero leader</b> uses <code>base deploy cap + 3,000 × savage_level</code>; a march <b>with no hero</b> is limited to the <code>squad deployment capacity</code>. Set either to 0 to treat it as unlimited.</li>
-      <li>Heroes take marches in this priority order: Amadeus, Chenko, Yeonwoo, Amane, then Hilde. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
+      <li>Heroes take marches in this priority order: Amadeus, Chenko, Yeonwoo, Amane, Margot, then Hilde. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
       <li>Deployable total: <code>T = min(T_troops, sum of every march cap)</code>.</li>
       <li>Filling strategy: <b>Balance marches</b> distributes troops evenly across all marches as their caps allow. <b>Fill in order</b> fills March 1 to its cap, then March 2, and so on.</li>
       <li>Within each march: <code>infantry = M × r_inf</code>, <code>cavalry = M × r_cav</code>, <code>archers = M × r_arc</code></li>
