@@ -321,20 +321,25 @@
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   .copy-fallback{position:fixed;left:-9999px;top:0;opacity:0}
   /* Wide hero cards compose portrait, season badge, content and chrome as separate layers. */
-  .hero-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;
-    width:min(1180px,calc(100vw - 64px));margin:0 0 12px 50%;transform:translateX(-50%)}
+  .hero-grid{display:flex;flex-wrap:wrap;justify-content:center;column-gap:18px;row-gap:28px;
+    width:min(1180px,calc(100vw - 64px));margin:0 0 12px 50%;overflow:visible;
+    transform:translateX(-50%)}
+  .hero-card-shell{position:relative;overflow:visible;flex:1 1 290px;max-width:410px;min-width:280px;
+    padding-top:12px}
+  .hero-card-shell.is-skill-open,
+  .hero-card-shell:has(.hero-skill-details:focus-within){z-index:30}
   .herocard{
     --hero-accent:#c9b9ff;
     --hero-accent-strong:#f0ebff;
     --hero-surface:#211848;
     --hero-surface-deep:#100d28;
-    position:relative;isolation:isolate;overflow:hidden;
-    flex:1 1 290px;max-width:410px;min-width:280px;min-height:195px;aspect-ratio:1.6;
-    border:1px solid color-mix(in srgb,var(--hero-accent) 55%,transparent);border-radius:16px;
-    background:linear-gradient(135deg,var(--hero-surface),var(--hero-surface-deep));
+    --hero-card-radius:16px;
+    --hero-border-color:color-mix(in srgb,var(--hero-accent) 55%,transparent);
+    position:relative;isolation:isolate;display:block;width:100%;min-height:195px;aspect-ratio:1.6;
+    overflow:visible;border-radius:var(--hero-card-radius);
     color:#f5f1ff;cursor:pointer;
     box-shadow:0 10px 28px rgba(7,5,18,.22),inset 0 1px rgba(255,255,255,.08);
-    transition:filter .2s ease,opacity .2s ease,transform .2s ease,box-shadow .2s ease,border-color .2s ease
+    transition:filter .2s ease,opacity .2s ease,transform .2s ease,box-shadow .2s ease
   }
   .hero-card--gold{
     --hero-accent:#e6ad3b;
@@ -343,25 +348,33 @@
     --hero-surface-deep:#211202;
     color:#fff2ce
   }
-  .herocard::before{content:'';position:absolute;z-index:6;inset:0;padding:1px;pointer-events:none;
+  .herocard::before{content:'';position:absolute;z-index:2;inset:0;padding:1px;pointer-events:none;
     border-radius:inherit;background:linear-gradient(110deg,transparent 30%,var(--hero-accent-strong) 50%,transparent 70%);
     background-position:150% 0;background-size:300% 100%;opacity:0;animation:hero-border-sweep 5s linear infinite;
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude}
+  .herocard::after{content:'';position:absolute;z-index:6;left:0;right:0;bottom:0;height:18px;
+    border:1px solid var(--hero-border-color);border-top:0;
+    border-radius:0 0 var(--hero-card-radius) var(--hero-card-radius);pointer-events:none}
   .herocard.on::before{opacity:.34}
-  .herocard.on:hover{transform:translateY(-2px);border-color:var(--hero-accent-strong);
+  .herocard.on:hover{--hero-border-color:var(--hero-accent-strong);transform:translateY(-2px);
     box-shadow:0 14px 34px rgba(7,5,18,.3),0 0 18px color-mix(in srgb,var(--hero-accent) 28%,transparent),
       inset 0 1px rgba(255,255,255,.12)}
   .herocard.on{animation:hero-card-pulse 7s ease-in-out infinite}
   .herocard.on:hover::before{opacity:.7;animation-duration:2.8s}
-  .herocard:not(.on){filter:saturate(.45);opacity:.78;border-color:rgba(180,180,190,.24);
+  .herocard:not(.on){--hero-border-color:rgba(180,180,190,.24);filter:saturate(.45);opacity:.78;
     box-shadow:0 8px 22px rgba(7,5,18,.14)}
   .herocard:not(.on)::before{display:none;animation:none}
-  .herocard::after{content:'';position:absolute;z-index:2;inset:0;pointer-events:none;
-    background:url("assets/ui/noise.svg") 0 0 / 180px 180px;opacity:.025;mix-blend-mode:soft-light}
   .herocard:has(input:focus-visible){outline:none;box-shadow:var(--focus-ring),
     0 0 20px color-mix(in srgb,var(--hero-accent) 32%,transparent)}
-  .hero-card__pattern{position:absolute;z-index:3;width:210px;height:210px;right:-28px;top:-24px;
+  .hero-card__surface{position:absolute;z-index:0;inset:0;overflow:hidden;border-radius:inherit}
+  .hero-card__surface::before{content:'';position:absolute;z-index:1;inset:0;pointer-events:none;
+    background:url("assets/ui/noise.svg") 0 0 / 180px 180px;opacity:.025;mix-blend-mode:soft-light}
+  .hero-card__border{position:absolute;z-index:2;inset:0;pointer-events:none;
+    border:1px solid var(--hero-border-color);border-radius:inherit}
+  .hero-card__background{position:absolute;z-index:0;inset:0;
+    background:linear-gradient(135deg,var(--hero-surface),var(--hero-surface-deep))}
+  .hero-card__pattern{position:absolute;z-index:4;width:210px;height:210px;right:-28px;top:-24px;
     background:url("assets/ui/hero-crest.png") center / contain no-repeat;
     opacity:.04;mix-blend-mode:screen;pointer-events:none;
     filter:brightness(0) saturate(100%) invert(66%) sepia(12%) saturate(720%)
@@ -373,15 +386,19 @@
       color-mix(in srgb,var(--hero-accent) 27%,transparent),
       color-mix(in srgb,var(--hero-surface) 34%,transparent) 40%,transparent 72%);
     pointer-events:none}
-  .hero-card__portrait{position:absolute;z-index:1;inset:0;overflow:visible;pointer-events:none}
-  .hero-card__hero{position:absolute;left:0;bottom:0;display:block;width:auto;max-width:none;
-    height:var(--hero-art-scale,110%);object-fit:contain;object-position:bottom left;
-    transform:translate(var(--hero-art-x,0),var(--hero-art-y,0));transform-origin:left bottom;scale:1;
+  .hero-card__art{position:absolute;z-index:3;left:-11.9048%;top:-19.2308%;width:111.9048%;height:119.2308%;
+    overflow:visible;pointer-events:none}
+  .hero-card__image{
     filter:saturate(1.06) contrast(1.02)
       drop-shadow(2px 0 1px color-mix(in srgb,var(--hero-accent-strong) 16%,transparent))
-      drop-shadow(0 8px 14px rgba(0,0,0,.36));
-    transition:filter .2s ease,opacity .2s ease,scale .25s ease}
-  .hero-card__art-fade{position:absolute;z-index:2;inset:0;pointer-events:none;
+      drop-shadow(0 8px 10px rgba(0,0,0,.28));
+    transition:filter .22s ease,opacity .2s ease}
+  .hero-card-shell[data-breakout="strong"] .hero-card__image{
+    filter:saturate(1.06) contrast(1.02)
+      drop-shadow(2px 0 1px color-mix(in srgb,var(--hero-accent-strong) 16%,transparent))
+      drop-shadow(0 10px 12px rgba(0,0,0,.32))}
+  .hero-card__art-fade{position:absolute;z-index:4;inset:1px;overflow:hidden;
+    border-radius:calc(var(--hero-card-radius) - 1px);pointer-events:none;
     background:
       linear-gradient(90deg,transparent 0%,transparent 34%,
         color-mix(in srgb,var(--hero-surface-deep) 10%,transparent) 45%,
@@ -389,32 +406,96 @@
         color-mix(in srgb,var(--hero-surface-deep) 68%,transparent) 68%,
         color-mix(in srgb,var(--hero-surface-deep) 92%,transparent) 80%,var(--hero-surface-deep) 90%),
       linear-gradient(0deg,color-mix(in srgb,var(--hero-surface-deep) 70%,transparent),transparent 40%)}
-  .herocard.on:hover .hero-card__hero{scale:1.012;filter:saturate(1.1) contrast(1.03)
+  .hero-card__info-bg{position:absolute;z-index:4;inset:1px 1px 1px 42%;pointer-events:none;
+    border-radius:0 calc(var(--hero-card-radius) - 1px) calc(var(--hero-card-radius) - 1px) 0;
+    background:linear-gradient(90deg,transparent,
+      color-mix(in srgb,var(--hero-surface-deep) 45%,transparent) 25%,
+      color-mix(in srgb,var(--hero-surface-deep) 82%,transparent) 55%,
+      color-mix(in srgb,var(--hero-surface-deep) 96%,transparent) 100%)}
+  .herocard.on:hover .hero-card__image{filter:saturate(1.1) contrast(1.03)
     drop-shadow(2px 0 1px color-mix(in srgb,var(--hero-accent-strong) 20%,transparent))
-    drop-shadow(0 10px 16px rgba(0,0,0,.4))}
-  .herocard:not(.on) .hero-card__hero{filter:grayscale(1) saturate(.25)
+    drop-shadow(0 10px 13px rgba(0,0,0,.34))}
+  .herocard:not(.on) .hero-card__image{filter:grayscale(1) saturate(.2) brightness(.55)
     drop-shadow(0 7px 12px rgba(0,0,0,.28));opacity:.56}
-  .hero-card__content{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;
-    width:57%;height:100%;min-height:inherit;margin-left:43%;padding:13px 17px 15px 9px;text-align:center}
-  .season-badge{position:relative;isolation:isolate;display:block;width:58px;height:58px;flex:none;
-    margin:-3px 0 -2px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.42));border-radius:10px}
+  .hero-card__content{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;
+    width:48%;height:100%;min-height:inherit;margin-left:52%;padding:72px 17px 15px 9px;text-align:center}
+  .season-badge{position:absolute;isolation:isolate;display:block;top:0;left:50%;width:74px;height:74px;
+    transform:translateX(-50%);filter:drop-shadow(0 1px 2px rgba(5,3,12,.38));border-radius:12px}
   .season-badge::before{content:'';position:absolute;z-index:-1;inset:12%;border-radius:50%;
     background:var(--hero-accent);opacity:.25;filter:blur(10px);pointer-events:none}
   .season-badge img{position:relative;z-index:1;display:block;width:100%;height:100%;object-fit:contain;
-    mix-blend-mode:screen}
+    filter:drop-shadow(0 0 1px rgba(4,3,10,.42))}
   .herocard .heroinfo{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}
   .herocard .heroname{display:block;font-size:20px;font-weight:650;line-height:1.15;
     letter-spacing:-.015em;color:inherit;text-shadow:0 1px 8px rgba(0,0,0,.35)}
-  .herocard .herorole{display:block;max-width:100%;margin-top:5px;color:color-mix(in srgb,currentColor 78%,transparent);
-    font-size:12px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .herocard .heroreq{display:inline-flex;align-items:center;margin-top:11px;padding:3px 8px 3px 10px;
-    border:1px solid color-mix(in srgb,var(--hero-accent) 26%,transparent);border-radius:20px;
-    background:color-mix(in srgb,var(--hero-accent) 15%,transparent);color:var(--hero-accent-strong);
-    font-size:9px;font-weight:600;letter-spacing:.045em;line-height:1.5;text-transform:uppercase;white-space:nowrap}
-  .herocard .skilllevel{display:inline-flex;align-items:center;justify-content:center;
-    min-width:19px;height:19px;margin-left:5px;padding:0 5px;border-radius:10px;
-    background:var(--hero-accent-strong);color:var(--hero-surface-deep);font-size:11px;font-weight:750;
-    line-height:1;letter-spacing:0}
+  .hero-skill-details{position:static;display:block;width:100%;margin-top:2px;text-align:left}
+  .hero-stat--interactive:hover,
+  .hero-stat--interactive:focus-visible{
+    border-color:color-mix(in srgb,var(--hero-stat-accent) 48%,rgba(255,255,255,.16));
+    background:color-mix(in srgb,var(--hero-stat-accent) 11%,transparent);transform:translateX(1px)}
+  .hero-stat--interactive{cursor:help;outline:none}
+  .hero-stat--interactive:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--hero-accent) 52%,transparent)}
+  .hero-stat--interactive:hover .hero-stat__more,
+  .hero-stat--interactive:focus-visible .hero-stat__more{transform:translate(2px,-1px)}
+  .hero-card__skill-name{display:block;max-width:100%;color:var(--hero-accent-strong);
+    font-size:12px;font-weight:550;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hero-card--nudge-skill .hero-card__skill-name{transform:translateX(5px)}
+  .hero-stats{display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;margin-top:5px}
+  .hero-stat{display:inline-flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:5px 8px;
+    border:1px solid color-mix(in srgb,var(--hero-stat-accent,var(--hero-accent)) 24%,rgba(255,255,255,.1));
+    border-radius:8px;background:rgba(255,255,255,.035);color:var(--hero-accent-strong);
+    transition:background-color .16s ease,border-color .16s ease,transform .16s ease}
+  .hero-stat--attack{--hero-stat-accent:#f0bd5b}
+  .hero-stat--lethality{--hero-stat-accent:#e9bd52}
+  .hero-stat--defense{--hero-stat-accent:#a9c8ec}
+  .hero-stat--enemyDamageTaken,.hero-stat--enemyDefense{--hero-stat-accent:#ef6f78}
+  .hero-stat__icon{width:20px;height:20px;flex:none;object-fit:contain}
+  .hero-stat__label{min-width:0;color:color-mix(in srgb,var(--hero-stat-accent) 78%,white);
+    font-size:11px;font-weight:620;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hero-stat__more{margin-left:auto;color:color-mix(in srgb,var(--hero-stat-accent) 70%,transparent);
+    font-size:17px;font-weight:500;line-height:1;transform:translateY(-1px);transition:transform .16s ease}
+  .hero-skill-min{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:11px;
+    color:color-mix(in srgb,currentColor 62%,transparent);font-size:10px;line-height:1.2}
+  .hero-skill-min img{width:14px;height:14px;object-fit:contain}
+  .hero-skill-min strong{color:var(--hero-accent-strong);font-weight:700}
+  .hero-skill-portal{position:fixed;z-index:1000;inset:0;pointer-events:none}
+  .hero-skill-popover{--hero-accent:#c9b9ff;--hero-accent-strong:#f0ebff;
+    position:fixed;z-index:1001;left:0;top:0;display:flex;flex-direction:column;width:292px;
+    padding:13px;border:1px solid color-mix(in srgb,var(--hero-accent) 35%,rgba(255,255,255,.14));border-radius:11px;
+    background:linear-gradient(145deg,rgba(32,30,42,.985),rgba(19,18,26,.99));
+    color:#ececf2;box-shadow:0 16px 34px rgba(0,0,0,.48);cursor:default;text-align:left;
+    overflow-y:auto;overscroll-behavior:contain;opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .14s ease,visibility .14s ease}
+  .hero-skill-popover--gold{--hero-accent:#e6ad3b;--hero-accent-strong:#ffe3a0}
+  .hero-skill-popover.is-open{opacity:1;visibility:visible;pointer-events:auto}
+  .hero-skill-popover__name{color:var(--hero-accent-strong);font-size:15px;font-weight:650;line-height:1.3}
+  .hero-skill-popover__minimum{display:flex;align-items:center;gap:6px;margin-top:5px;color:#aaa9b3;
+    font-size:11px;line-height:1.35}
+  .hero-skill-popover__minimum img{width:14px;height:14px;object-fit:contain}
+  .hero-skill-popover__minimum strong{color:var(--hero-accent-strong);font-weight:650}
+  .hero-skill-effects{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .hero-skill-effect{display:flex;flex-direction:column;margin-top:10px;min-width:0}
+  .hero-skill-effect + .hero-skill-effect{padding-left:12px;border-left:1px solid rgba(255,255,255,.1)}
+  .hero-skill-effect__title .hero-stat{width:max-content;max-width:100%;min-height:27px;padding:3px 7px}
+  .hero-skill-description{margin:5px 1px 6px;color:#b9b8c1;font-size:11px;line-height:1.4}
+  .skill-levels{display:flex;flex-direction:column;gap:2px}
+  .skill-level-row{position:relative;display:grid;grid-template-columns:45px 1fr 66px;align-items:center;min-height:27px;
+    padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.035);color:#aaa9b3;
+    font-size:11px;font-variant-numeric:tabular-nums}
+  .skill-level-row strong{color:#f0eff4;font-size:12px;font-weight:600;text-align:right}
+  .skill-level-row.is-minimum{color:var(--hero-accent-strong);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,#e6ad3b 70%,transparent)}
+  .skill-level-row.is-minimum > span:first-child::before{content:'★';margin-right:4px;color:#e6ad3b;font-size:9px}
+  .skill-level-row.is-selected{background:color-mix(in srgb,var(--hero-accent) 28%,transparent);
+    box-shadow:inset 3px 0 var(--hero-accent)}
+  .skill-level-row.is-selected::before{content:'\25B6';position:absolute;left:-9px;color:var(--hero-accent-strong);
+    font-size:7px;line-height:1}
+  .skill-level-row.is-recommended{background:color-mix(in srgb,var(--hero-accent) 28%,transparent);
+    color:var(--hero-accent-strong);font-weight:600}
+  .skill-level-row.is-minimum.is-selected{box-shadow:inset 3px 0 var(--hero-accent),
+    inset 0 0 0 1px color-mix(in srgb,#e6ad3b 76%,transparent)}
+  .skill-level-delta{color:#87bd65;text-align:right;font-size:10px;white-space:nowrap}
+  .skill-popover-note{margin-top:8px;color:#8f8e98;font-size:9px;line-height:1.35}
   .herocard .pill{align-self:flex-end;min-width:104px;margin:auto 0 0;padding:5px 12px;
     border:1px solid color-mix(in srgb,var(--hero-accent) 58%,transparent);border-radius:18px;
     background:color-mix(in srgb,var(--hero-surface-deep) 52%,transparent);color:var(--hero-accent-strong);
@@ -422,10 +503,16 @@
   .herocard:not(.on) .pill{color:color-mix(in srgb,currentColor 62%,transparent);
     border-color:color-mix(in srgb,currentColor 25%,transparent);background:rgba(0,0,0,.14)}
   .herocard:not(.on) .heroname{color:color-mix(in srgb,currentColor 82%,white)}
-  .herocard:not(.on) .herorole{color:color-mix(in srgb,currentColor 84%,white)}
-  .herocard:not(.on) .heroreq{color:color-mix(in srgb,var(--hero-accent-strong) 85%,white);
-    background:color-mix(in srgb,var(--hero-accent) 20%,transparent);
-    border-color:color-mix(in srgb,var(--hero-accent) 34%,transparent)}
+  .herocard:not(.on) .hero-card__skill-name,
+  .herocard:not(.on) .hero-skill-min{color:color-mix(in srgb,currentColor 82%,white)}
+  .stat-legend{width:min(1180px,calc(100vw - 64px));margin:12px 0 0 50%;padding:9px 12px;
+    border:1px solid var(--border);border-radius:10px;background:var(--surface-1);transform:translateX(-50%)}
+  .stat-legend__title{display:block;margin-bottom:5px;color:var(--text-muted);font-size:10px;
+    font-weight:650;letter-spacing:.09em;text-transform:uppercase}
+  .stat-legend__items{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+  .stat-legend__item{display:flex;min-width:0}
+  .stat-legend .hero-stat{width:max-content;max-width:100%;min-height:25px;padding:2px 6px;
+    background:transparent;border-color:color-mix(in srgb,var(--border) 70%,transparent)}
   @keyframes hero-border-sweep{
     from{background-position:150% 0}
     to{background-position:-150% 0}
@@ -434,18 +521,28 @@
     0%,82%,100%{box-shadow:0 10px 28px rgba(7,5,18,.22),0 0 0 transparent,inset 0 1px rgba(255,255,255,.08)}
     90%{box-shadow:0 12px 32px rgba(7,5,18,.28),0 0 20px color-mix(in srgb,var(--hero-accent) 24%,transparent),inset 0 1px rgba(255,255,255,.12)}
   }
+  @media(max-width:900px){
+    .hero-grid{column-gap:16px;row-gap:24px}
+    .stat-legend__items{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media(max-width:640px){
+    .hero-grid{row-gap:20px}
+    .hero-card-shell{flex-basis:100%;max-width:410px;min-width:0;padding-top:8px}
+    .stat-legend__items{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
   @media(max-width:560px){
-    .hero-card__content{width:59%;margin-left:41%;padding-right:14px}
+    .hero-card__content{padding-right:14px}
   }
   @media(max-width:450px){
     .hero-grid{width:100%;margin-left:0;transform:none;gap:12px}
-    .hero-grid .herocard{flex-basis:100%;max-width:none;min-width:0;min-height:205px}
+    .hero-card-shell{max-width:none}
+    .hero-grid .herocard{min-height:205px}
+    .stat-legend{width:100%;margin-left:0;transform:none}
   }
   @media(prefers-reduced-motion:reduce){
     .herocard,.herocard::before{animation:none}
-    .herocard,.hero-card__hero{transition:none}
+    .herocard,.hero-card__image{transition:none}
     .herocard.on:hover{transform:none}
-    .herocard.on:hover .hero-card__hero{scale:1}
   }
   .verdict{position:relative;border:1px solid var(--border);border-left-width:3px;border-radius:var(--radius);
     padding:0.75rem 1rem 0.75rem 3rem;margin-top:12px;background:var(--surface-1);

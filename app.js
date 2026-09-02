@@ -17,9 +17,153 @@ document.addEventListener('DOMContentLoaded', () => {
     wholeTroops,
     findBottlenecks
   } = BearCalcCore;
-  const {HEROES, HERO_SLOTS, renderHeroCards} = BearHeroUI;
+  const {HEROES, HERO_SLOTS, renderHeroCards, renderHeroPriority, renderStatLegend} = BearHeroUI;
   const heroInputIds = HERO_SLOTS.map(hero => hero.id);
   $('heroGrid').innerHTML = renderHeroCards();
+  $('heroPriority').innerHTML = renderHeroPriority();
+  $('statLegend').innerHTML = renderStatLegend();
+
+  const heroGrid = $('heroGrid');
+  const skillPortal = $('heroSkillPortal');
+  heroGrid.querySelectorAll('.hero-skill-popover').forEach(popover => skillPortal.appendChild(popover));
+  let activeSkillTrigger = null;
+  let skillCloseTimer = 0;
+  let skillPositionFrame = 0;
+
+  function skillPopover(trigger){
+    return $(trigger.getAttribute('aria-controls'));
+  }
+  function positionSkillPopover(trigger){
+    const popover = skillPopover(trigger);
+    if(!popover.classList.contains('is-open')) return;
+    const card = trigger.closest('.herocard').getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight;
+    const gap = 12;
+    const edge = 12;
+    popover.style.maxWidth = `${viewportWidth - edge * 2}px`;
+    popover.style.maxHeight = `${viewportHeight - edge * 2}px`;
+    const width = popover.offsetWidth;
+    const height = popover.offsetHeight;
+    const roomRight = viewportWidth - card.right - gap;
+    const roomLeft = card.left - gap;
+    let placement;
+    let left;
+    let top;
+    if(roomRight >= width){
+      placement = 'right';
+      left = card.right + gap;
+      top = card.top + (card.height - height) / 2;
+    }else if(roomLeft >= width){
+      placement = 'left';
+      left = card.left - gap - width;
+      top = card.top + (card.height - height) / 2;
+    }else{
+      placement = 'above';
+      left = card.left + (card.width - width) / 2;
+      top = card.top - gap - height;
+    }
+    left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
+    top = Math.max(edge, Math.min(top, viewportHeight - height - edge));
+    popover.dataset.placement = placement;
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top = `${Math.round(top)}px`;
+  }
+  function scheduleSkillPosition(){
+    cancelAnimationFrame(skillPositionFrame);
+    skillPositionFrame = requestAnimationFrame(() => {
+      if(activeSkillTrigger) positionSkillPopover(activeSkillTrigger);
+    });
+  }
+  function cancelSkillClose(){
+    clearTimeout(skillCloseTimer);
+  }
+  function scheduleSkillClose(trigger){
+    cancelSkillClose();
+    skillCloseTimer = setTimeout(() => {
+      const popover = skillPopover(trigger);
+      if(!trigger.hasAttribute('data-pinned') && !trigger.matches(':hover') && !popover.matches(':hover')){
+        setSkillDetails(trigger, false);
+      }
+    }, 160);
+  }
+  function setSkillDetails(trigger, open, pinned = false){
+    if(open) cancelSkillClose();
+    const details = trigger.closest('.hero-skill-details');
+    const popover = skillPopover(trigger);
+    details.classList.toggle('is-open', open);
+    trigger.toggleAttribute('data-pinned', open && pinned);
+    trigger.setAttribute('aria-expanded', String(open));
+    popover.setAttribute('aria-hidden', String(!open));
+    popover.classList.toggle('is-open', open);
+    details.closest('.hero-card-shell').classList.toggle('is-skill-open', open);
+    activeSkillTrigger = open ? trigger : activeSkillTrigger === trigger ? null : activeSkillTrigger;
+    if(open) scheduleSkillPosition();
+  }
+  function closeSkillDetails(except = null){
+    heroGrid.querySelectorAll('.hero-stat--interactive[aria-expanded="true"]').forEach(trigger => {
+      if(trigger !== except) setSkillDetails(trigger, false);
+    });
+  }
+  heroGrid.addEventListener('click', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(!trigger) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const willOpen = !trigger.hasAttribute('data-pinned');
+    closeSkillDetails(trigger);
+    setSkillDetails(trigger, willOpen, willOpen);
+  });
+  heroGrid.addEventListener('keydown', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(trigger && (event.key === 'Enter' || event.key === ' ')){
+      event.preventDefault();
+      trigger.click();
+      return;
+    }
+    if(event.key !== 'Escape') return;
+    const activeTrigger = event.target.closest('.hero-stat--interactive') || activeSkillTrigger;
+    if(!activeTrigger) return;
+    event.preventDefault();
+    setSkillDetails(activeTrigger, false);
+    activeTrigger.focus();
+  });
+  heroGrid.addEventListener('focusin', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(!trigger) return;
+    closeSkillDetails(trigger);
+    setSkillDetails(trigger, true, trigger.hasAttribute('data-pinned'));
+  });
+  heroGrid.addEventListener('focusout', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(!trigger || trigger.hasAttribute('data-pinned')) return;
+    scheduleSkillClose(trigger);
+  });
+  heroGrid.addEventListener('pointerover', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(!trigger || trigger.contains(event.relatedTarget)) return;
+    closeSkillDetails(trigger);
+    setSkillDetails(trigger, true, trigger.hasAttribute('data-pinned'));
+  });
+  heroGrid.addEventListener('pointerout', event => {
+    const trigger = event.target.closest('.hero-stat--interactive');
+    if(trigger && !trigger.contains(event.relatedTarget) && !trigger.hasAttribute('data-pinned')){
+      scheduleSkillClose(trigger);
+    }
+  });
+  skillPortal.addEventListener('pointerenter', cancelSkillClose, true);
+  skillPortal.addEventListener('pointerleave', () => {
+    if(activeSkillTrigger && !activeSkillTrigger.hasAttribute('data-pinned')){
+      scheduleSkillClose(activeSkillTrigger);
+    }
+  }, true);
+  document.addEventListener('click', event => {
+    if(!event.target.closest('.hero-skill-details') && !event.target.closest('.hero-skill-portal')){
+      closeSkillDetails();
+    }
+  });
+  window.addEventListener('resize', scheduleSkillPosition);
+  window.addEventListener('scroll', scheduleSkillPosition, true);
 
   const IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
                ...heroInputIds,'unit','ci','cc','ca','tol'];
