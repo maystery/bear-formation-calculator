@@ -232,6 +232,8 @@ test('SVG clip architecture replaces duplicate portraits and CSS breakout masks'
   assert.match(css, /\.hero-card__content\{[^}]*width:48%;[^}]*margin-left:52%;/);
   assert.match(css, /\.season-badge\{[^}]*position:absolute;[^}]*top:0;left:50%;width:74px;height:74px;/);
   assert.doesNotMatch(css, /\.season-badge::after/);
+  assert.match(css, /@media\(max-width:640px\)\{\s*\.hero-grid\{row-gap:28px\}/);
+  assert.match(css, /@media\(max-width:450px\)\{\s*\.hero-grid\{[^}]*row-gap:28px\}/);
   assert.doesNotMatch(css, /portrait-breakout|portrait-base|corner-protector|corner-mask|mask-mode/);
   assert.match(index, /class="hero-skill-portal" id="heroSkillPortal"/);
   assert.match(app, /skillPortal\.appendChild\(popover\)/);
