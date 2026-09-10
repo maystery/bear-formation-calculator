@@ -9,6 +9,7 @@ const {capacityBuffSummary} = require('../calculator-core.js');
 const projectRoot = path.resolve(__dirname, '..');
 const index = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
 const app = fs.readFileSync(path.join(projectRoot, 'app.js'), 'utf8');
+const styles = fs.readFileSync(path.join(projectRoot, 'styles.css'), 'utf8');
 
 test('active Bison applies its recorded bonus to squad capacity', () => {
   const result = capacityBuffSummary(150210, true);
@@ -46,6 +47,7 @@ test('Mighty Bison uses a full-card native button as an accessible keyboard togg
   assert.match(app, /\$\('bisonBuff'\)\.addEventListener\('click'/);
   assert.match(app, /setAttribute\('aria-checked', String\(isBisonBuffEnabled\)\)/);
   assert.doesNotMatch(index, /type="checkbox"[^>]*bison|class="[^"]*toggle-switch/i);
+  assert.match(styles, /\.capacity-buff-toggle:hover,.capacity-buff-toggle:focus-visible\{background:transparent\}/);
 });
 
 test('skill levels are selectable independently and scale both recorded bonuses', () => {

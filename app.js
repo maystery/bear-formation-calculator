@@ -318,22 +318,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function positionCapacityPicker(picker){
     const trigger = picker.querySelector('.capacity-buff-level-trigger');
     const menu = capacityPickerMenu(picker);
-    const triggerRect = trigger.getBoundingClientRect();
-    const gap = 12;
+    const anchor = picker.closest('.capacity-buff-content').querySelector('.capacity-buff-description');
+    const anchorRect = (anchor || trigger).getBoundingClientRect();
+    const gap = 0;
     const edge = 10;
     const width = menu.offsetWidth;
     const height = menu.offsetHeight;
     const viewportWidth = document.documentElement.clientWidth;
     const viewportHeight = window.innerHeight;
-    let left = triggerRect.left;
+    let left = anchorRect.left;
     let top;
     let placement;
-    if(triggerRect.bottom + gap + height <= viewportHeight - edge){
+    if(anchorRect.bottom + gap + height <= viewportHeight - edge){
       placement = 'below';
-      top = triggerRect.bottom + gap;
+      top = anchorRect.bottom + gap;
     }else{
       placement = 'above';
-      top = triggerRect.top - gap - height;
+      top = anchorRect.top - gap - height;
     }
     left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
     top = Math.max(edge, Math.min(top, viewportHeight - height - edge));
