@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     splitByRatio,
     splitMarches,
     wholeTroops,
-    findBottlenecks
+    findBottlenecks,
+    capacityBuffSummary
   } = BearCalcCore;
   const {HEROES, HERO_SLOTS, renderHeroCards, renderHeroPriority, renderStatLegend} = BearHeroUI;
   const heroInputIds = HERO_SLOTS.map(hero => hero.id);
@@ -165,19 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', scheduleSkillPosition);
   window.addEventListener('scroll', scheduleSkillPosition, true);
 
-  const IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
+  const IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','valoraSkill','bisonSkill',
                ...heroInputIds,'unit','ci','cc','ca','tol'];
   const FOLDS = ['foldCap','foldHeroes'];
   const MAIN_AMOUNT_IDS = ['si','sc','sa','squad','cap'];
   const CHECK_AMOUNT_IDS = ['ci','cc','ca'];
   const RATIO_IDS = ['ri','rc','ra'];
-  const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','sav',
+  const SHARE_IDS = ['si','sc','sa','ri','rc','ra','n','squad','cap','valoraSkill','bisonSkill',
                      ...heroInputIds,'unit'];
   const FILL_STRATEGIES = ['equal','sequential'];
-  const SAVAGE_PER_LEVEL = 3000;
+  const VALORA_BONUS_PER_LEVEL = 3000;
+  const BISON_BONUS_PER_LEVEL = 1500;
   const MAX_MARCHES = 7;
   let UNIT = 'k';
   let lastResult = null;
+  let isBisonBuffEnabled = false;
 
   function fillStrategy(){
     return document.querySelector('input[name="fillStrategy"]:checked').value;
@@ -185,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // keep slider fill, tick highlight and thumb labels in sync with values
   function syncSliders(){
-    [['n',1,7],['sav',0,10]].forEach(([id,min,max]) => {
+    [['n',1,7]].forEach(([id,min,max]) => {
       const el = $(id);
       const v = Math.min(max, Math.max(min, Math.floor(+el.value || min)));
       el.style.setProperty('--pct', ((v - min) / (max - min) * 100) + '%');
@@ -256,8 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : 'Left out of the split';
     });
     const led = Math.min(order.length, n);
-    $('heroSum').textContent =
-      `${order.length}/${HERO_SLOTS.length} heroes · Valora Lv ${$('sav').value}`;
+    $('heroSum').textContent = `${order.length}/${HERO_SLOTS.length} heroes`;
     $('heroHint').textContent =
       led === 0 ? 'No hero leading — every march is held to the squad deployment capacity.'
       : benched > 0 ? `${benched} hero${benched > 1 ? 'es' : ''} left over — raise the march count to use them.`
@@ -293,6 +295,103 @@ document.addEventListener('DOMContentLoaded', () => {
     el.classList.add('flash');
   }
 
+  const fixedCapacity = value => value >= 1000
+    ? `${(value / 1000).toFixed(2)}k` : Math.round(value).toLocaleString('en-US');
+
+  const capacitySkillLevel = id => Math.min(10, Math.max(1, Math.floor(+$(id).value || 1)));
+  const signedCapacity = value => `+${fixedCapacity(value)}`;
+  const capacityPickerMenu = picker => $(picker.querySelector('.capacity-buff-level-trigger').getAttribute('aria-controls'));
+
+  function syncCapacitySkillPicker(id, level){
+    const input = $(id);
+    const picker = input.closest('[data-capacity-skill-picker]');
+    const menu = capacityPickerMenu(picker);
+    input.value = String(level);
+    picker.querySelector('[data-picker-value]').textContent = String(level);
+    menu.querySelectorAll('[role="option"]').forEach(option => {
+      const selected = +option.dataset.level === level;
+      option.setAttribute('aria-selected', String(selected));
+      option.tabIndex = selected ? 0 : -1;
+    });
+  }
+
+  function positionCapacityPicker(picker){
+    const trigger = picker.querySelector('.capacity-buff-level-trigger');
+    const menu = capacityPickerMenu(picker);
+    const triggerRect = trigger.getBoundingClientRect();
+    const gap = 12;
+    const edge = 10;
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight;
+    let left = triggerRect.left;
+    let top;
+    let placement;
+    if(triggerRect.bottom + gap + height <= viewportHeight - edge){
+      placement = 'below';
+      top = triggerRect.bottom + gap;
+    }else{
+      placement = 'above';
+      top = triggerRect.top - gap - height;
+    }
+    left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
+    top = Math.max(edge, Math.min(top, viewportHeight - height - edge));
+    menu.dataset.placement = placement;
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+  }
+
+  function setCapacityPickerOpen(picker, open, focusSelected = false){
+    const trigger = picker.querySelector('.capacity-buff-level-trigger');
+    const menu = capacityPickerMenu(picker);
+    trigger.setAttribute('aria-expanded', String(open));
+    menu.hidden = !open;
+    if(open) positionCapacityPicker(picker);
+    if(open && focusSelected){
+      const selected = menu.querySelector('[aria-selected="true"]');
+      if(selected) selected.focus();
+    }
+  }
+
+  function closeCapacitySkillPickers(except){
+    document.querySelectorAll('[data-capacity-skill-picker]').forEach(picker => {
+      if(picker !== except) setCapacityPickerOpen(picker, false);
+    });
+  }
+
+  function syncCapacityBuffs(baseCapacity){
+    const valoraSkillLevel = capacitySkillLevel('valoraSkill');
+    const bisonSkillLevel = capacitySkillLevel('bisonSkill');
+    const valoraBonus = valoraSkillLevel * VALORA_BONUS_PER_LEVEL;
+    const bisonRecordedBonus = bisonSkillLevel * BISON_BONUS_PER_LEVEL;
+    syncCapacitySkillPicker('valoraSkill', valoraSkillLevel);
+    syncCapacitySkillPicker('bisonSkill', bisonSkillLevel);
+    const summary = capacityBuffSummary(baseCapacity, isBisonBuffEnabled, {
+      valoraBonus,
+      bisonRecordedBonus
+    });
+    const toggle = $('bisonBuff');
+    toggle.setAttribute('aria-checked', String(isBisonBuffEnabled));
+    toggle.closest('.bison-buff-card').classList.toggle('is-active', isBisonBuffEnabled);
+    $('bisonBuffStatus').textContent = isBisonBuffEnabled ? 'Active' : 'Inactive';
+    $('valoraBonusCard').textContent = valoraBonus % 1000 === 0
+      ? `+${valoraBonus / 1000}k` : `+${(valoraBonus / 1000).toFixed(1)}k`;
+    $('bisonBonusCard').textContent = `+${bisonRecordedBonus.toLocaleString('en-US')}`;
+    $('capacityValoraLevel').textContent = `(Skill Lv. ${valoraSkillLevel})`;
+    $('capacityValoraValue').textContent = signedCapacity(valoraBonus);
+    $('capacityBisonLevel').textContent = `Skill Lv. ${bisonSkillLevel}`;
+    $('capacityBisonValue').textContent = signedCapacity(bisonRecordedBonus);
+    $('capacityBisonRow').classList.toggle('is-inactive', !isBisonBuffEnabled);
+    $('capacityBisonState').textContent = isBisonBuffEnabled ? 'Applied' : 'Recorded, inactive';
+    $('capacityBaseValue').textContent = baseCapacity === null ? '–' : fixedCapacity(summary.baseCapacity);
+    $('capacityBuffTotal').textContent = baseCapacity === null ? '–' : fixedCapacity(summary.total);
+    $('capacityBuffInfo').textContent = isBisonBuffEnabled
+      ? `Fearless Roar increases Squad Capacity by ${bisonRecordedBonus.toLocaleString('en-US')} for 2 hours.`
+      : `Recorded bonus: +${bisonRecordedBonus.toLocaleString('en-US')}. Currently inactive.`;
+    return summary;
+  }
+
   function clearLimits(){
     ['tileInf','tileCav','tileArc','tileSquad','tileCap']
       .forEach(id => $(id).classList.remove('limit'));
@@ -326,19 +425,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value||1)));
     const strategy = fillStrategy();
 
-    const sav = Math.min(10, Math.max(0, Math.floor(+$('sav').value||0)));
-    const savBonus = sav * SAVAGE_PER_LEVEL;
     $('nOut').textContent = n;
     $('fillStrategyHint').textContent = strategy === 'sequential'
       ? 'Max March 1, then March 2, and continue in order.'
       : 'Spread available troops as evenly as capacity allows.';
-    $('savOut').textContent = sav;
-    $('savBon').textContent = '+' + fmt(savBonus);
     const order = leaderOrder();
     syncHeroCards(order, n);
 
     const parsedRatios = readRatios();
     const parsedMain = readAmounts(MAIN_AMOUNT_IDS);
+    const capacityBase = parsedMain.invalid.includes('cap') ? null : parsedMain.values.cap;
+    const capacityBuffs = syncCapacityBuffs(capacityBase);
     const summaryRatio = parsedRatios.invalid.length
       ? 'needs attention'
       : [parsedRatios.values.ri, parsedRatios.values.rc, parsedRatios.values.ra].map(trim).join(' / ');
@@ -361,13 +458,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const squadCap = V.squad;
     const baseCap = V.cap;
 
-    // a march led by a hero uses the base deploy cap (plus the Valora skill);
+    // A hero march uses the base deploy cap plus the selected Valora skill and active Bison skill buffs.
     // a march with no hero is limited to the squad deployment capacity
-    const capHero = baseCap > 0 ? baseCap + savBonus : Infinity;
+    const capHero = baseCap > 0 ? capacityBuffs.total : Infinity;
     const capNone = squadCap > 0 ? squadCap : Infinity;
     setVal('tCap', isFinite(capHero) ? fmt(capHero) : '∞');
-    $('capBreak').textContent = (isFinite(capHero) && savBonus > 0)
-      ? fmt(baseCap) + ' + ' + fmt(savBonus) : '';
+    $('capBreak').textContent = isFinite(capHero)
+      ? `${fmt(baseCap)} + ${fmt(capacityBuffs.valoraBonus)}`
+        + (isBisonBuffEnabled ? ` + ${fmt(capacityBuffs.bisonRecordedBonus)}` : '') : '';
     setVal('tNoCap', isFinite(capNone) ? fmt(capNone) : '∞');
     $('capSum').textContent = `squad ${isFinite(capNone) ? fmt(capNone) : '∞'}`
       + ` · march ${isFinite(capHero) ? fmt(capHero) : '∞'}`;
@@ -565,6 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
       url.searchParams.set(id, el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value);
     });
     url.searchParams.set('fillStrategy', fillStrategy());
+    url.searchParams.set('bison', isBisonBuffEnabled ? '1' : '0');
     return url.href;
   }
 
@@ -590,6 +689,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const strategy = params.get('fillStrategy');
     if(FILL_STRATEGIES.includes(strategy)){
       document.querySelector(`input[name="fillStrategy"][value="${strategy}"]`).checked = true;
+      loaded = true;
+    }
+    const bison = params.get('bison');
+    if(bison === '0' || bison === '1'){
+      isBisonBuffEnabled = bison === '1';
       loaded = true;
     }
     return loaded;
@@ -675,6 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
       o[id] = el.type === 'checkbox' ? el.checked : el.value;
     });
     o.fillStrategy = fillStrategy();
+    o.bisonBuffEnabled = isBisonBuffEnabled;
     FOLDS.forEach(id => { o[id] = $(id).open; });
     o.theme = theme;
     store.write(o);
@@ -698,6 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(FILL_STRATEGIES.includes(o.fillStrategy)){
       document.querySelector(`input[name="fillStrategy"][value="${o.fillStrategy}"]`).checked = true;
     }
+    if(typeof o.bisonBuffEnabled === 'boolean') isBisonBuffEnabled = o.bisonBuffEnabled;
     FOLDS.forEach(id => { if(typeof o[id] === 'boolean') $(id).open = o[id]; });
     if(o.theme) applyTheme(o.theme);
   }
@@ -728,6 +834,79 @@ document.addEventListener('DOMContentLoaded', () => {
   function update(){ calc(); saveState(); }
 
   IDS.forEach(i => { $(i).addEventListener('input', update); $(i).addEventListener('change', update); });
+  document.querySelectorAll('[data-capacity-skill-picker]').forEach(picker => {
+    const input = $(picker.dataset.input);
+    const trigger = picker.querySelector('.capacity-buff-level-trigger');
+    const menu = capacityPickerMenu(picker);
+    const options = [...menu.querySelectorAll('[role="option"]')];
+    picker.addEventListener('pointerdown', event => event.stopPropagation());
+    picker.addEventListener('click', event => event.stopPropagation());
+    menu.addEventListener('pointerdown', event => event.stopPropagation());
+    menu.addEventListener('click', event => event.stopPropagation());
+    trigger.addEventListener('click', () => {
+      const open = trigger.getAttribute('aria-expanded') !== 'true';
+      closeCapacitySkillPickers(picker);
+      setCapacityPickerOpen(picker, open, open);
+    });
+    trigger.addEventListener('keydown', event => {
+      if(event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      closeCapacitySkillPickers(picker);
+      setCapacityPickerOpen(picker, true, true);
+    });
+    options.forEach((option, index) => {
+      option.addEventListener('click', () => {
+        input.value = option.dataset.level;
+        syncCapacitySkillPicker(input.id, +option.dataset.level);
+        setCapacityPickerOpen(picker, false);
+        trigger.focus();
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+      });
+      option.addEventListener('keydown', event => {
+        let next = index;
+        if(event.key === 'ArrowRight') next = Math.min(options.length - 1, index + 1);
+        else if(event.key === 'ArrowLeft') next = Math.max(0, index - 1);
+        else if(event.key === 'ArrowDown') next = Math.min(options.length - 1, index + 5);
+        else if(event.key === 'ArrowUp') next = Math.max(0, index - 5);
+        else if(event.key === 'Home') next = 0;
+        else if(event.key === 'End') next = options.length - 1;
+        else if(event.key === 'Escape'){
+          event.preventDefault();
+          setCapacityPickerOpen(picker, false);
+          trigger.focus();
+          return;
+        }else return;
+        event.preventDefault();
+        options[next].focus();
+      });
+    });
+    picker.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if(!picker.contains(document.activeElement) && !menu.contains(document.activeElement)){
+          setCapacityPickerOpen(picker, false);
+        }
+      });
+    });
+    menu.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if(!picker.contains(document.activeElement) && !menu.contains(document.activeElement)){
+          setCapacityPickerOpen(picker, false);
+        }
+      });
+    });
+    $('capacityBuffPortal').appendChild(menu);
+  });
+  document.addEventListener('click', event => {
+    if(!event.target.closest('[data-capacity-skill-picker]') && !event.target.closest('.capacity-buff-level-menu')){
+      closeCapacitySkillPickers();
+    }
+  });
+  window.addEventListener('resize', () => closeCapacitySkillPickers());
+  window.addEventListener('scroll', () => closeCapacitySkillPickers(), true);
+  $('bisonBuff').addEventListener('click', () => {
+    isBisonBuffEnabled = !isBisonBuffEnabled;
+    update();
+  });
   document.querySelectorAll('input[name="fillStrategy"]')
     .forEach(el => { el.addEventListener('input', update); el.addEventListener('change', update); });
   FOLDS.forEach(i => $(i).addEventListener('toggle', saveState));
@@ -743,6 +922,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasSharedSetup = url.searchParams.get('setup') === '1';
     url.searchParams.delete('setup');
     url.searchParams.delete('fillStrategy');
+    url.searchParams.delete('bison');
+    url.searchParams.delete('sav');
     SHARE_IDS.forEach(id => url.searchParams.delete(id));
     if(hasSharedSetup) location.replace(url.href);
     else location.reload();

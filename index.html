@@ -102,26 +102,103 @@
       </div>
       <div class="tile cap" id="tileCap">
         <label class="lbl lblrow" for="cap"><span>Base deploy cap / march</span><span class="limitbadge">Limit</span></label>
-        <input id="cap" type="text" inputmode="decimal" value="139.31k" placeholder="0 = no limit">
+        <input id="cap" type="text" inputmode="decimal" value="150.21k" placeholder="0 = no limit">
         <div class="tilenote">Easiest way to find this: prepare a rally and watch the left corner.</div>
       </div>
     </div>
   </details>
 
+  <section class="section capacity-buffs-section" aria-labelledby="capacityBuffsTitle">
+    <div class="sechead"><h2 class="sectitle" id="capacityBuffsTitle">Capacity buffs</h2></div>
+    <div class="capacity-buffs-grid">
+      <article class="capacity-buff-card valora-buff-card">
+        <img class="capacity-buff-art" src="assets/buffs/valora.png" alt="" aria-hidden="true">
+        <div class="capacity-buff-shade" aria-hidden="true"></div>
+        <div class="capacity-buff-content">
+          <div class="capacity-buff-heading"><strong>Valora</strong></div>
+          <span class="capacity-buff-skill">Savage Advantage</span>
+          <span class="capacity-buff-level-control" data-capacity-skill-picker data-input="valoraSkill">
+            <button class="capacity-buff-level-trigger" id="valoraSkillTrigger" type="button"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="valoraSkillMenu">
+              Skill Lv. <strong data-picker-value>10</strong><span aria-hidden="true">⌄</span>
+            </button>
+            <span class="capacity-buff-level-menu" id="valoraSkillMenu" role="listbox" data-tone="gold"
+              aria-labelledby="valoraSkillTrigger" hidden>
+              <button type="button" role="option" data-level="1" aria-selected="false">1</button>
+              <button type="button" role="option" data-level="2" aria-selected="false">2</button>
+              <button type="button" role="option" data-level="3" aria-selected="false">3</button>
+              <button type="button" role="option" data-level="4" aria-selected="false">4</button>
+              <button type="button" role="option" data-level="5" aria-selected="false">5</button>
+              <button type="button" role="option" data-level="6" aria-selected="false">6</button>
+              <button type="button" role="option" data-level="7" aria-selected="false">7</button>
+              <button type="button" role="option" data-level="8" aria-selected="false">8</button>
+              <button type="button" role="option" data-level="9" aria-selected="false">9</button>
+              <button type="button" role="option" data-level="10" aria-selected="true">10</button>
+            </span>
+            <input id="valoraSkill" type="hidden" value="10">
+          </span>
+          <span class="capacity-buff-description">4th Skill &middot; <b id="valoraBonusCard">+30k</b> per march</span>
+        </div>
+      </article>
+
+      <article class="capacity-buff-card bison-buff-card">
+        <button class="capacity-buff-toggle" id="bisonBuff" type="button" role="switch"
+          aria-checked="false" aria-describedby="bisonBuffDescription">
+          <span class="sr-only">Apply Mighty Bison capacity buff</span>
+        </button>
+        <img class="capacity-buff-art" src="assets/buffs/mighty-bison.png" alt="" aria-hidden="true">
+        <span class="capacity-buff-shade" aria-hidden="true"></span>
+        <span class="capacity-buff-content">
+          <span class="capacity-buff-heading"><strong>Mighty Bison</strong><span class="capacity-buff-status" id="bisonBuffStatus">Inactive</span></span>
+          <span class="capacity-buff-skill">Fearless Roar</span>
+          <span class="capacity-buff-level-control" data-capacity-skill-picker data-input="bisonSkill">
+            <button class="capacity-buff-level-trigger" id="bisonSkillTrigger" type="button"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="bisonSkillMenu">
+              Skill Lv. <strong data-picker-value>10</strong><span aria-hidden="true">⌄</span>
+            </button>
+            <span class="capacity-buff-level-menu" id="bisonSkillMenu" role="listbox"
+              aria-labelledby="bisonSkillTrigger" hidden>
+              <button type="button" role="option" data-level="1" aria-selected="false">1</button>
+              <button type="button" role="option" data-level="2" aria-selected="false">2</button>
+              <button type="button" role="option" data-level="3" aria-selected="false">3</button>
+              <button type="button" role="option" data-level="4" aria-selected="false">4</button>
+              <button type="button" role="option" data-level="5" aria-selected="false">5</button>
+              <button type="button" role="option" data-level="6" aria-selected="false">6</button>
+              <button type="button" role="option" data-level="7" aria-selected="false">7</button>
+              <button type="button" role="option" data-level="8" aria-selected="false">8</button>
+              <button type="button" role="option" data-level="9" aria-selected="false">9</button>
+              <button type="button" role="option" data-level="10" aria-selected="true">10</button>
+            </span>
+            <input id="bisonSkill" type="hidden" value="10">
+          </span>
+          <span class="capacity-buff-description" id="bisonBuffDescription"><b id="bisonBonusCard">+15,000</b> capacity &middot; 2 hours</span>
+        </span>
+      </article>
+
+      <aside class="capacity-summary" aria-labelledby="capacitySummaryTitle">
+        <h3 id="capacitySummaryTitle">Squad capacity</h3>
+        <dl class="capacity-summary-list">
+          <div><dt>Base deploy cap / march</dt><dd id="capacityBaseValue">150.21k</dd></div>
+          <div><dt>Valora <span id="capacityValoraLevel">(Skill Lv. 10)</span></dt><dd id="capacityValoraValue">+30.00k</dd></div>
+          <div class="capacity-summary-bison is-inactive" id="capacityBisonRow">
+            <dt>Mighty Bison <small id="capacityBisonLevel">Skill Lv. 10</small></dt>
+            <dd><strong id="capacityBisonValue">+15.00k</strong><small id="capacityBisonState">Recorded, inactive</small></dd>
+          </div>
+          <div class="capacity-summary-total"><dt>Total Squad Capacity</dt><dd id="capacityBuffTotal">180.21k</dd></div>
+        </dl>
+        <div class="capacity-buff-note" id="capacityBuffNote">
+          <span class="capacity-note-icon" aria-hidden="true">i</span>
+          <p id="capacityBuffInfo">Recorded bonus: +15,000. Currently inactive.</p>
+          <span class="capacity-duration">Skill Duration <b>2 hours</b></span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="capacity-buff-portal" id="capacityBuffPortal"></div>
+
   <details class="section fold" id="foldHeroes" open>
     <summary class="sechead"><h2 class="sectitle">Heroes</h2><span class="foldsum" id="heroSum"></span></summary>
-    <div class="row">
-      <div class="tile pro valora">
-        <div class="valora-copy">
-          <div class="valora-head"><label class="lbl" for="sav">Valora <b>Savage Advantage</b></label><span>Lv. <b id="savOut">10</b></span></div>
-          <div class="valora-meta">4th skill · <b id="savBon">+30k</b> per march</div>
-        </div>
-        <div class="sliderwrap">
-          <input id="sav" type="range" min="0" max="10" step="1" value="10">
-          <div class="scale"><span>0</span><span>10</span></div>
-        </div>
-      </div>
-    </div>
     <div class="hero-priority" id="heroPriority"></div>
     <div class="hero-grid" id="heroGrid"></div>
     <div class="hint" id="heroHint"></div>
@@ -170,7 +247,7 @@
     <summary>How it's calculated</summary>
     <ol>
       <li>Troop ceiling — the scarcest type relative to its share: <code>T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)</code></li>
-      <li>Each march has its own cap: a march <b>with a hero leader</b> uses <code>base deploy cap + 3,000 × savage_level</code>; a march <b>with no hero</b> is limited to the <code>squad deployment capacity</code>. Set either to 0 to treat it as unlimited.</li>
+      <li>Each march has its own cap: a march <b>with a hero leader</b> uses <code>base deploy cap + selected Savage Advantage bonus + active Fearless Roar bonus</code>; a march <b>with no hero</b> is limited to the <code>squad deployment capacity</code>. Set either base capacity to 0 to treat that base limit as unlimited.</li>
       <li>Heroes take marches in the assignment priority shown above, with Hilde last. Untick one to drop it from the split — its march falls back to the squad capacity, so the total sent goes down.</li>
       <li>Deployable total: <code>T = min(T_troops, sum of every march cap)</code>.</li>
       <li>Filling strategy: <b>Balance marches</b> distributes troops evenly across all marches as their caps allow. <b>Fill in order</b> fills March 1 to its cap, then March 2, and so on.</li>
@@ -178,6 +255,8 @@
     </ol>
     <p>Rounding uses largest-remainder plus a global reconciliation, so every march sums exactly to its total without using more troops than you own. Leave a capacity at 0 to treat it as unlimited.</p>
   </details>
+
+  <footer class="site-footer">Made with <span class="site-footer__heart">♥</span> by MΛYSTΞR</footer>
 </div>
 
 <div class="hero-skill-portal" id="heroSkillPortal"></div>

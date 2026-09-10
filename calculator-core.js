@@ -163,6 +163,21 @@
     };
   }
 
+  function capacityBuffSummary(baseCapacity, isBisonBuffEnabled, options = {}){
+    const valoraBonus = options.valoraBonus ?? 30000;
+    const bisonRecordedBonus = options.bisonRecordedBonus ?? 15000;
+    const base = Number(baseCapacity);
+    const validBase = Number.isFinite(base) && base >= 0 ? base : 0;
+    return Object.freeze({
+      baseCapacity:validBase,
+      valoraBonus,
+      bisonRecordedBonus,
+      isBisonBuffEnabled:Boolean(isBisonBuffEnabled),
+      appliedBisonBonus:isBisonBuffEnabled ? bisonRecordedBonus : 0,
+      total:validBase + valoraBonus + (isBisonBuffEnabled ? bisonRecordedBonus : 0)
+    });
+  }
+
   return Object.freeze({
     TROOP_KEYS,
     parseAmount,
@@ -172,6 +187,7 @@
     splitByRatio,
     splitMarches,
     wholeTroops,
-    findBottlenecks
+    findBottlenecks,
+    capacityBuffSummary
   });
 });
