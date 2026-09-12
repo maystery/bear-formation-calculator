@@ -89,6 +89,8 @@ The page serves WebP artwork sized for high-density screens. The original PNGs r
 
 Input changes render at most once per animation frame, and edits in **Check a march** update that section alone. Browser saves are debounced by 250 ms and flushed when the page is hidden or left. Feedback animations respect reduced-motion preferences.
 
+Hero portraits load within 400 pixels of the viewport, with their space reserved before loading. Card animations pause off-screen and when the page is hidden. Browsers without `IntersectionObserver` load all portraits immediately. Hero and buff controls refresh only when their settings change, and closed popups perform no positioning or picker queries on scroll.
+
 ## Tests
 
 The pure parsing and calculation logic lives in `calculator-core.js`. With Node.js installed, run the dependency-free regression suite using:
@@ -104,8 +106,11 @@ npm install --no-save --package-lock=false playwright
 npx playwright install chromium webkit
 npm run test:browser
 npm run test:mobile
+npm run test:performance
 ```
 
 These tools are only used for browser checks; the site and `npm test` remain dependency-free.
+
+The performance suite checks lazy portrait loading, stable card dimensions, off-screen animations, unchanged control updates, and popup scroll work in Chromium and WebKit. It also covers collapsed hero sections and the fallback for browsers without intersection observation.
 
 The mobile suite uses touch emulation in Chromium and WebKit at 320, 360, 390, 430, 768, and 844 pixels, in light and dark themes. It checks card bounds, input text size, touch targets, menus, rotation, troop entry, table scrolling, copying, persistence, and reset. Run `npm run test:mobile -- --screenshots` to save viewport screenshots under `artifacts/browser/mobile/` for visual review. Browser emulation does not replace checks on a physical phone with its on-screen keyboard.

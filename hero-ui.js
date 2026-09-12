@@ -267,7 +267,7 @@
       + `<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">`
       + `<path class="hero-card__clip-shape" d="${portraitClipPath}"></path>`
       + `</clipPath></defs>`
-      + `<image class="hero-card__image" href="${hero.portrait}" x="${art.x}" y="${art.y}" `
+      + `<image class="hero-card__image" data-src="${hero.portrait}" x="${art.x}" y="${art.y}" `
       + `width="${art.width}" height="${art.height}" preserveAspectRatio="xMidYMax meet" `
       + `clip-path="url(#${clipId})"></image></svg>`
       + `<span class="hero-card__art-fade" aria-hidden="true"></span>`

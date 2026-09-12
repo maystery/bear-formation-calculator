@@ -136,7 +136,7 @@ test('hero cards compose one clipped SVG portrait with separate chrome and conte
     assert.match(html, new RegExp(`data-hero="${slot.key}"`));
     assert.match(html, new RegExp(`id="pill-${slot.key}"`));
     const card = heroCard(slot);
-    const portraitSources = [...card.matchAll(/class="hero-card__image" href="([^"]+)"/g)]
+    const portraitSources = [...card.matchAll(/class="hero-card__image" data-src="([^"]+)"/g)]
       .map(match => match[1]);
     assert.deepEqual(portraitSources, [hero.portrait]);
     assert.match(card, new RegExp(`id="hero-art-clip-${slot.key}"`));

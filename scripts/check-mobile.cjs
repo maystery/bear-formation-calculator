@@ -35,6 +35,21 @@ async function captureViewport(page, selector, filename){
   await page.locator(selector).evaluate(element => window.scrollTo(0,
     element.getBoundingClientRect().top + scrollY - 16));
   await nextPaint(page);
+  await page.waitForFunction(() => [...document.querySelectorAll('.hero-card__image')].every(image => {
+    const rect = image.closest('.herocard').getBoundingClientRect();
+    return rect.bottom <= 0 || rect.top >= innerHeight || image.hasAttribute('href');
+  }));
+  await page.evaluate(async () => {
+    const visible = [...document.querySelectorAll('.hero-card__image[href]')].filter(image => {
+      const rect = image.closest('.herocard').getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    });
+    await Promise.all(visible.map(async image => {
+      const decoded = new Image();
+      decoded.src = image.getAttribute('href');
+      await decoded.decode();
+    }));
+  });
   await page.screenshot({path:path.join(output, filename)});
   assert.equal(await page.evaluate(() => matchMedia('(pointer:coarse)').matches), true);
 }

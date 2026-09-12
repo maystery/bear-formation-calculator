@@ -18,6 +18,44 @@ document.addEventListener('DOMContentLoaded', () => {
   $('statLegend').innerHTML = renderStatLegend();
 
   const heroGrid = $('heroGrid');
+  const heroCards = [...heroGrid.querySelectorAll('.herocard')];
+  const visibleHeroCards = new Set();
+  function loadPortrait(card){
+    const portrait = card.querySelector('.hero-card__image[data-src]');
+    if(!portrait) return;
+    portrait.setAttribute('href', portrait.dataset.src);
+    portrait.removeAttribute('data-src');
+  }
+  function syncHeroVisibility(){
+    heroCards.forEach(card => card.classList.toggle('is-visible',
+      visibleHeroCards.has(card) && !document.hidden));
+  }
+  if('IntersectionObserver' in window){
+    const portraitObserver = new IntersectionObserver(entries => {
+      entries.forEach(({target, isIntersecting}) => {
+        if(!isIntersecting) return;
+        loadPortrait(target);
+        portraitObserver.unobserve(target);
+      });
+    }, {rootMargin:'400px 0px'});
+    const visibilityObserver = new IntersectionObserver(entries => {
+      entries.forEach(({target, isIntersecting}) => {
+        if(isIntersecting) visibleHeroCards.add(target);
+        else visibleHeroCards.delete(target);
+        target.classList.toggle('is-visible', isIntersecting && !document.hidden);
+      });
+    });
+    heroCards.forEach(card => {
+      portraitObserver.observe(card);
+      visibilityObserver.observe(card);
+    });
+  }else{
+    // Keep artwork available in browsers without intersection observation.
+    heroCards.forEach(card => { loadPortrait(card); visibleHeroCards.add(card); });
+    syncHeroVisibility();
+  }
+  document.addEventListener('visibilitychange', syncHeroVisibility);
+
   const skillPortal = $('heroSkillPortal');
   heroGrid.querySelectorAll('.hero-skill-popover').forEach(popover => skillPortal.appendChild(popover));
   let activeSkillTrigger = null;
@@ -65,8 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
     popover.style.top = `${Math.round(top)}px`;
   }
   function scheduleSkillPosition(){
-    cancelAnimationFrame(skillPositionFrame);
+    if(!activeSkillTrigger || skillPositionFrame) return;
     skillPositionFrame = requestAnimationFrame(() => {
+      skillPositionFrame = 0;
       if(activeSkillTrigger) positionSkillPopover(activeSkillTrigger);
     });
   }
@@ -94,11 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
     details.closest('.hero-card-shell').classList.toggle('is-skill-open', open);
     activeSkillTrigger = open ? trigger : activeSkillTrigger === trigger ? null : activeSkillTrigger;
     if(open) scheduleSkillPosition();
+    else if(!activeSkillTrigger){
+      cancelAnimationFrame(skillPositionFrame);
+      skillPositionFrame = 0;
+    }
   }
   function closeSkillDetails(except = null){
-    heroGrid.querySelectorAll('.hero-stat--interactive[aria-expanded="true"]').forEach(trigger => {
-      if(trigger !== except) setSkillDetails(trigger, false);
-    });
+    if(activeSkillTrigger && activeSkillTrigger !== except) setSkillDetails(activeSkillTrigger, false);
   }
   heroGrid.addEventListener('click', event => {
     const trigger = event.target.closest('.hero-stat--interactive');
@@ -256,7 +297,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function leaderOrder(){
     return HERO_SLOTS.filter(h => $(h.id).checked).map(h => h.key);
   }
+  let renderedHeroState = null;
   function syncHeroCards(order, n){
+    const state = [n, ...order].join('|');
+    if(state === renderedHeroState) return;
     let benched = 0;
     const priorityChips = $('heroPriority').querySelectorAll('.hero-priority-chip');
     HERO_SLOTS.forEach((h, index) => {
@@ -280,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
       : benched > 0 ? `${benched} hero${benched > 1 ? 'es' : ''} left over — raise the march count to use them.`
       : n > led ? `${n - led} march${n - led > 1 ? 'es' : ''} without a hero, held to the squad deployment capacity.`
       : '';
+    renderedHeroState = state;
   }
   function leaderCell(key){
     const hero = HEROES[key || 'none'];
@@ -319,17 +364,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const signedCapacity = value => `+${fixedCapacity(value)}`;
   const capacityPickerMenu = picker => $(picker.querySelector('.capacity-buff-level-trigger').getAttribute('aria-controls'));
 
+  const renderedSkillLevels = new Map();
+  let activeCapacityPicker = null;
   function syncCapacitySkillPicker(id, level){
     const input = $(id);
+    if(input.value !== String(level)) input.value = String(level);
+    if(renderedSkillLevels.get(id) === level) return;
     const picker = input.closest('[data-capacity-skill-picker]');
     const menu = capacityPickerMenu(picker);
-    input.value = String(level);
     picker.querySelector('[data-picker-value]').textContent = String(level);
     menu.querySelectorAll('[role="option"]').forEach(option => {
       const selected = +option.dataset.level === level;
       option.setAttribute('aria-selected', String(selected));
       option.tabIndex = selected ? 0 : -1;
     });
+    renderedSkillLevels.set(id, level);
   }
 
   function positionCapacityPicker(picker){
@@ -361,10 +410,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setCapacityPickerOpen(picker, open, focusSelected = false){
+    if(!open && activeCapacityPicker !== picker) return;
+    if(open) closeCapacitySkillPickers(picker);
     const trigger = picker.querySelector('.capacity-buff-level-trigger');
     const menu = capacityPickerMenu(picker);
     trigger.setAttribute('aria-expanded', String(open));
     menu.hidden = !open;
+    activeCapacityPicker = open ? picker : null;
     if(open) positionCapacityPicker(picker);
     if(open && focusSelected){
       const selected = menu.querySelector('[aria-selected="true"]');
@@ -373,11 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeCapacitySkillPickers(except){
-    document.querySelectorAll('[data-capacity-skill-picker]').forEach(picker => {
-      if(picker !== except) setCapacityPickerOpen(picker, false);
-    });
+    if(activeCapacityPicker && activeCapacityPicker !== except) setCapacityPickerOpen(activeCapacityPicker, false);
   }
 
+  let renderedCapacityBuffs = null;
   function syncCapacityBuffs(baseCapacity){
     const valoraSkillLevel = capacitySkillLevel('valoraSkill');
     const bisonSkillLevel = capacitySkillLevel('bisonSkill');
@@ -385,6 +436,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const bisonRecordedBonus = bisonSkillLevel * BISON_BONUS_PER_LEVEL;
     syncCapacitySkillPicker('valoraSkill', valoraSkillLevel);
     syncCapacitySkillPicker('bisonSkill', bisonSkillLevel);
+    const state = [baseCapacity, valoraSkillLevel, bisonSkillLevel, isBisonBuffEnabled].join('|');
+    if(renderedCapacityBuffs?.state === state) return renderedCapacityBuffs.summary;
     const summary = capacityBuffSummary(baseCapacity, isBisonBuffEnabled, {
       valoraBonus,
       bisonRecordedBonus
@@ -407,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('capacityBuffInfo').textContent = isBisonBuffEnabled
       ? `Fearless Roar increases Squad Capacity by ${bisonRecordedBonus.toLocaleString('en-US')} for 2 hours.`
       : `Recorded bonus: +${bisonRecordedBonus.toLocaleString('en-US')}. Currently inactive.`;
+    renderedCapacityBuffs = {state, summary};
     return summary;
   }
 

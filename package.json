@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node --test",
     "test:browser": "node scripts/check-browser.cjs",
-    "test:mobile": "node scripts/check-mobile.cjs"
+    "test:mobile": "node scripts/check-mobile.cjs",
+    "test:performance": "node scripts/check-performance.cjs"
   }
 }
