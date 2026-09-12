@@ -76,8 +76,11 @@ test('hero presentation data preserves priority, seasons and skill requirements'
 });
 
 test('visible assignment priority is rendered from the deployment order', () => {
-  assert.equal(renderHeroPriority(),
-    '<span>Assignment priority</span>Wee &amp; Woo <b>&rarr;</b> Amadeus <b>&rarr;</b> Chenko <b>&rarr;</b> Yeonwoo <b>&rarr;</b> Amane <b>&rarr;</b> Margot <b>&rarr;</b> Vivian <b>&rarr;</b> Ava <b>&rarr;</b> Hilde');
+  const html = renderHeroPriority();
+  const avatars = [...html.matchAll(/<img class="hero-priority-avatar" src="([^"]+)" alt="" width="24" height="24">/g)];
+  assert.deepEqual(avatars.map(match => match[1]), HERO_SLOTS.map(({key}) => HEROES[key].avatar));
+  assert.equal(html.replace(/<img[^>]+>/g, ''),
+    '<span class="hero-priority-label">Assignment priority</span><span class="hero-priority-list" role="list"><span class="hero-priority-chip" role="listitem"><b>1</b><span>Wee &amp; Woo</span></span><span class="hero-priority-chip" role="listitem"><b>2</b><span>Amadeus</span></span><span class="hero-priority-chip" role="listitem"><b>3</b><span>Chenko</span></span><span class="hero-priority-chip" role="listitem"><b>4</b><span>Yeonwoo</span></span><span class="hero-priority-chip" role="listitem"><b>5</b><span>Amane</span></span><span class="hero-priority-chip" role="listitem"><b>6</b><span>Margot</span></span><span class="hero-priority-chip" role="listitem"><b>7</b><span>Vivian</span></span><span class="hero-priority-chip" role="listitem"><b>8</b><span>Ava</span></span><span class="hero-priority-chip" role="listitem"><b>9</b><span>Hilde</span></span></span>');
 });
 
 test('hero cards compose one clipped SVG portrait with separate chrome and content', () => {

@@ -24,17 +24,15 @@
     <div><b>Shared setup loaded</b><span>Values from this link replaced matching saved calculator values.</span></div>
   </div>
 
-  <div class="callout">
-    <span class="ico" aria-hidden="true">!</span>
-    <div>
-      <div class="ctitle">Before you set these in game</div>
-      <div class="cbody">The Bear Formation screen lets you set a ratio, but not exact troop counts, and its displayed capacity may exclude rally bonuses. Use this calculator to choose the ratio, then compare the final in-game troop counts with <b>Check a march</b>. A full rally or too few archers can still change the final mix.</div>
-    </div>
-  </div>
-
-  <section class="section">
-    <div class="sechead">
-      <h2 class="sectitle">Troops &amp; ratio</h2>
+  <section class="section formation-section" aria-labelledby="formationTitle">
+    <div class="formation-header">
+      <div class="formation-heading">
+        <span class="formation-icon-placeholder" aria-hidden="true">⚔</span>
+        <div>
+          <h2 class="sectitle" id="formationTitle">Formation Setup</h2>
+          <p class="formation-helper">Set your available troops, choose the composition ratio, and configure how they are split across marches.</p>
+        </div>
+      </div>
       <div class="actions">
         <span class="setup-summary" id="setupSummary" aria-live="polite">Formation 10 / 10 / 80 · 5 marches</span>
         <button id="the" class="preset-button" type="button" title="Set the 10 / 10 / 80 ratio">THE preset</button>
@@ -42,70 +40,75 @@
         <button id="reset" type="button" title="Clear saved values">Reset</button>
       </div>
     </div>
-    <div class="control-panel">
-      <div class="row g4">
-        <div class="tile" id="tileInf"><label class="lbl lblrow" for="si"><span>Infantry</span><span class="limitbadge">Limit</span></label><input id="si" type="text" inputmode="decimal" value="281.85k"></div>
-        <div class="tile" id="tileCav"><label class="lbl lblrow" for="sc"><span>Cavalry</span><span class="limitbadge">Limit</span></label><input id="sc" type="text" inputmode="decimal" value="292.799k"></div>
-        <div class="tile" id="tileArc"><label class="lbl lblrow" for="sa"><span>Archers</span><span class="limitbadge">Limit</span></label><input id="sa" type="text" inputmode="decimal" value="566.04k"></div>
-        <div class="tile"><label class="lbl" for="unit">Units</label>
-          <select id="unit"><option value="k" selected>k / m short</option><option value="full">Full numbers</option></select></div>
-      </div>
-      <div class="row g2">
-        <div class="tile">
-          <div class="lbl">Ratio %</div>
-          <div class="ratio">
-            <label><span class="sr-only">Infantry percent</span><input id="ri" type="number" min="0" step="any" value="10"></label>
-            <label><span class="sr-only">Cavalry percent</span><input id="rc" type="number" min="0" step="any" value="10"></label>
-            <label><span class="sr-only">Archer percent</span><input id="ra" type="number" min="0" step="any" value="80"></label>
+    <div class="formation-editor">
+      <div class="formation-column formation-left">
+        <section class="formation-subsection" aria-labelledby="availableTroopsTitle">
+          <div class="available-troops-heading">
+            <h3 id="availableTroopsTitle">Available troops</h3>
+            <div class="formation-units"><label class="lbl" for="unit">Units</label><select id="unit"><option value="k" selected>k / m short</option><option value="full">Full numbers</option></select></div>
+          </div>
+          <p>Enter the total number of troops you can use for this rally.</p>
+          <div class="formation-troops">
+            <div class="tile troop-card" id="tileInf"><label class="lbl lblrow" for="si"><span><i class="troop-icon troop-icon--infantry" aria-hidden="true"></i>Infantry</span><span class="limitbadge">Limit</span></label><input id="si" type="text" inputmode="decimal" value="281.85k"></div>
+            <div class="tile troop-card" id="tileCav"><label class="lbl lblrow" for="sc"><span><i class="troop-icon troop-icon--cavalry" aria-hidden="true"></i>Cavalry</span><span class="limitbadge">Limit</span></label><input id="sc" type="text" inputmode="decimal" value="292.799k"></div>
+            <div class="tile troop-card" id="tileArc"><label class="lbl lblrow" for="sa"><span><i class="troop-icon troop-icon--archers" aria-hidden="true"></i>Archers</span><span class="limitbadge">Limit</span></label><input id="sa" type="text" inputmode="decimal" value="566.04k"></div>
+          </div>
+        </section>
+        <section class="formation-subsection" aria-labelledby="compositionTitle">
+          <h3 id="compositionTitle">Composition ratio</h3>
+          <p>Set the desired troop composition ratio (Infantry &middot; Cavalry &middot; Archers).</p>
+          <div class="ratio formation-ratio">
+            <div class="ratio-control"><div class="ratio-stepper"><button type="button" data-ratio-adjust="ri" data-ratio-step="-1" aria-label="Decrease Infantry ratio">−</button><label for="ri"><span class="sr-only">Infantry percent</span><input id="ri" type="number" min="0" step="any" value="10"></label><button type="button" data-ratio-adjust="ri" data-ratio-step="1" aria-label="Increase Infantry ratio">+</button></div><span>Infantry</span></div>
+            <div class="ratio-control"><div class="ratio-stepper"><button type="button" data-ratio-adjust="rc" data-ratio-step="-1" aria-label="Decrease Cavalry ratio">−</button><label for="rc"><span class="sr-only">Cavalry percent</span><input id="rc" type="number" min="0" step="any" value="10"></label><button type="button" data-ratio-adjust="rc" data-ratio-step="1" aria-label="Increase Cavalry ratio">+</button></div><span>Cavalry</span></div>
+            <div class="ratio-control"><div class="ratio-stepper"><button type="button" data-ratio-adjust="ra" data-ratio-step="-1" aria-label="Decrease Archers ratio">−</button><label for="ra"><span class="sr-only">Archer percent</span><input id="ra" type="number" min="0" step="any" value="80"></label><button type="button" data-ratio-adjust="ra" data-ratio-step="1" aria-label="Increase Archers ratio">+</button></div><span>Archers</span></div>
           </div>
           <div class="ratiokeys"><div>Inf</div><div>Cav</div><div>Arc</div></div>
           <div class="warnmsg" id="warn"></div>
-        </div>
-        <div class="tile">
-          <div class="march-head">
-            <label class="lbl" for="n">Marches: <b id="nOut" class="primary-value">5</b> <span class="muted">/ 7 max</span></label>
-            <div class="march-composition" aria-label="Maximum: 1 rally leader and 6 joiners">
-              <span>1 leader</span><span>6 joiners</span>
-            </div>
-          </div>
-          <div class="sliderwrap">
-            <input id="n" type="range" min="1" max="7" step="1" value="5">
-            <div class="scale ticks" id="nScale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
-          </div>
-        </div>
+        </section>
       </div>
-      <div class="row strategy-row">
-        <div class="tile">
-          <fieldset class="strategy" aria-describedby="fillStrategyHint">
-            <legend class="lbl">Filling strategy</legend>
-            <div class="strategy-content">
-              <div class="segmented">
-                <label><input class="sr-only" type="radio" name="fillStrategy" value="equal" checked>Balance marches</label>
-                <label><input class="sr-only" type="radio" name="fillStrategy" value="sequential">Fill in order</label>
-              </div>
-              <div class="tilenote" id="fillStrategyHint">Spread available troops as evenly as capacity allows.</div>
-            </div>
-          </fieldset>
-        </div>
+      <div class="formation-column formation-right">
+        <section class="formation-subsection march-section" aria-labelledby="marchesTitle">
+          <div class="formation-subsection-heading"><div><h3 id="marchesTitle">Number of marches</h3><p>Split your troops across multiple marches (max 7).</p></div><strong class="march-count"><b id="nOut" class="primary-value">5</b> <small>/ 7 max</small></strong></div>
+          <label class="sr-only" for="n">Number of marches</label><input id="n" type="range" min="1" max="7" step="1" value="5">
+          <div class="scale ticks" id="nScale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+          <div class="march-composition" aria-label="Maximum: 1 rally leader and 6 joiners"><span>1 leader</span><span>6 joiners</span></div>
+        </section>
+        <section class="formation-subsection strategy-section" aria-labelledby="strategyTitle">
+          <h3 id="strategyTitle">Filling strategy</h3>
+          <p>Choose how to distribute troops into marches.</p>
+          <fieldset class="strategy" aria-describedby="fillStrategyHint"><legend class="sr-only">Filling strategy</legend><div class="strategy-options">
+            <label class="strategy-option"><input class="sr-only" type="radio" name="fillStrategy" value="equal" checked><i class="strategy-icon-placeholder" aria-hidden="true"></i><span><b>Balance marches</b><small>Spread available troops as evenly as capacity allows.</small></span></label>
+            <label class="strategy-option"><input class="sr-only" type="radio" name="fillStrategy" value="sequential"><i class="strategy-icon-placeholder" aria-hidden="true"></i><span><b>Fill in order</b><small>Fill each march to capacity before moving to the next.</small></span></label>
+          </div><div class="tilenote" id="fillStrategyHint" hidden>Spread available troops as evenly as capacity allows.</div></fieldset>
+        </section>
       </div>
-      <div class="warnmsg" id="inputError" role="alert"></div>
+      <div class="warnmsg formation-input-error" id="inputError" role="alert"></div>
+      <div class="callout formation-note"><span class="ico" aria-hidden="true">i</span><div><div class="ctitle">Before you set these in game</div><div class="cbody">The Bear Formation screen lets you set a ratio, but not exact troop counts, and its displayed capacity may exclude rally bonuses. Use this calculator to choose the ratio, then compare the final in-game troop counts with <b>Check a march</b>.</div></div></div>
     </div>
   </section>
 
   <details class="section fold" id="foldCap" open>
     <summary class="sechead"><h2 class="sectitle">Capacity</h2><span class="foldsum" id="capSum"></span></summary>
-    <div class="row g2">
-      <div class="tile cap" id="tileSquad">
-        <label class="lbl lblrow" for="squad"><span>Squad deployment capacity</span><span class="limitbadge">Limit</span></label>
-        <input id="squad" type="text" inputmode="decimal" value="98.9k" placeholder="0 = ignore">
-        <div class="tilenote">You can find this value in the command center details.</div>
+    <div class="capacity-overview">
+      <div class="capacity-metric" id="tileSquad">
+        <span class="capacity-icon-placeholder capacity-icon-group" aria-hidden="true"><span></span><span></span><span></span></span>
+        <div class="capacity-metric-copy"><h3>Squad deployment capacity <span class="limitbadge">Limit</span></h3><p>You can find this value in the command center details.</p></div>
+        <output class="capacity-metric-value" id="squadCapacityDisplay" for="squad" aria-label="Squad deployment capacity">98,900</output>
       </div>
-      <div class="tile cap" id="tileCap">
-        <label class="lbl lblrow" for="cap"><span>Base deploy cap / march</span><span class="limitbadge">Limit</span></label>
-        <input id="cap" type="text" inputmode="decimal" value="150.21k" placeholder="0 = no limit">
-        <div class="tilenote">Easiest way to find this: prepare a rally and watch the left corner.</div>
+      <div class="capacity-metric" id="tileCap">
+        <span class="capacity-icon-placeholder" aria-hidden="true">♜</span>
+        <div class="capacity-metric-copy"><h3>Base deploy cap / march <span class="limitbadge">Limit</span></h3><p>Before capacity buffs. Find this by preparing a rally and checking the left corner.</p></div>
+        <output class="capacity-metric-value" id="baseCapacityDisplay" for="cap" aria-label="Base deploy cap per march">150,210</output>
       </div>
     </div>
+    <details class="capacity-edit" id="capacityEdit">
+      <summary>Edit capacity values</summary>
+      <div class="capacity-edit-fields">
+        <label for="squad">Squad deployment capacity<input id="squad" type="text" inputmode="decimal" value="98.9k" placeholder="0 = ignore"></label>
+        <label for="cap">Base deploy cap / march<input id="cap" type="text" inputmode="decimal" value="150.21k" placeholder="0 = no limit"></label>
+      </div>
+      <p class="capacity-edit-hint">Enter full values or k/m shorthand. Summaries show full numbers; fields keep your notation. Use 0 for no limit.</p>
+    </details>
   </details>
 
   <section class="section capacity-buffs-section" aria-labelledby="capacityBuffsTitle">
@@ -205,23 +208,23 @@
     <div id="statLegend"></div>
   </details>
 
-  <section class="section">
+  <section class="section result-section">
     <div class="sechead"><h2 class="sectitle">Result</h2><button id="copyFormation" type="button" disabled>Copy formation</button></div>
     <div class="row g4">
-      <div class="tile accent metric metric-total"><div class="lbl">Total sent</div><div class="val" id="tTotal">–</div></div>
-      <div class="tile metric metric-cap"><div class="lbl">Hero march cap</div><div class="val" id="tCap">–</div>
-        <div id="capBreak" class="capbreak"></div></div>
-      <div class="tile metric metric-cap"><div class="lbl">No-hero cap</div><div class="val" id="tNoCap">–</div></div>
-      <div class="tile metric metric-bottleneck" id="tileLim"><div class="lbl">Bottleneck</div>
-        <div class="bottleneck-line"><span class="bottleneck-icon" aria-hidden="true">!</span><div class="val bottleneck-value" id="tLim">–</div></div>
+      <div class="tile accent metric metric-total"><div class="lbl"><span class="result-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21v-3a6 6 0 0 1 12 0v3M5 5a3 3 0 0 0 0 6M19 5a3 3 0 0 1 0 6M2 19v-3a4 4 0 0 1 3-4M22 19v-3a4 4 0 0 0-3-4"/></svg></span>Total used</div><div class="val" id="tTotal">–</div><div class="result-metric-note" id="totalUsage"></div></div>
+      <div class="tile metric metric-cap"><div class="lbl"><span class="result-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6zM12 7v10M8 11h8"/></svg></span>Hero march cap</div><div class="val" id="tCap">–</div>
+        <div id="capBreak" class="capbreak"></div><div class="result-metric-note" id="capBreakLabels"></div></div>
+      <div class="tile metric metric-cap"><div class="lbl"><span class="result-kpi-icon result-kpi-icon--neutral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4.8A4 4 0 0 1 15.2 10M12 12a4 4 0 0 1-4-4M5 21v-2a7 7 0 0 1 8-6.9M17 14a7 7 0 0 1 2 5v2M3 21 21 3"/></svg></span>No hero cap</div><div class="val" id="tNoCap">–</div><div class="result-metric-note">Squad capacity per unled march</div></div>
+      <div class="tile metric metric-bottleneck" id="tileLim"><div class="lbl"><span class="result-kpi-icon result-kpi-icon--warning" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 10 18H2zM12 9v5M12 17v.2"/></svg></span>Bottleneck</div>
+        <div class="bottleneck-line"><div class="val bottleneck-value" id="tLim">–</div></div>
         <div class="limhint" id="limHint"></div></div>
     </div>
 
-    <div class="tablewrap"><table class="resulttable" id="rows" aria-live="polite"></table></div>
+    <div class="tablewrap" tabindex="0" role="region" aria-label="March allocation table, scroll horizontally on small screens"><table class="resulttable" id="rows" aria-label="Detailed march allocation" aria-live="polite"></table></div>
     <div class="note leftover-strip" id="leftover" hidden>
       <span class="leftover-label">Remaining troops</span><span id="leftoverValues"></span>
     </div>
-    <div class="hint">Type <code>566k</code>, <code>1.2m</code> or <code>566,040</code> in any number field.</div>
+    <div class="result-info"><span aria-hidden="true">i</span><p>Hero march cap includes base deploy cap and active capacity buffs. Total used is the sum of assigned troops. Capacity 0 is treated as unlimited.</p></div>
   </section>
 
   <section class="section check-section">
@@ -230,16 +233,16 @@
 
     <div class="control-panel check-panel">
       <div class="row g4">
-        <div class="tile"><label class="lbl" for="ci">Infantry</label><input id="ci" type="text" inputmode="decimal" value="0"></div>
-        <div class="tile"><label class="lbl" for="cc">Cavalry</label><input id="cc" type="text" inputmode="decimal" value="0"></div>
-        <div class="tile"><label class="lbl" for="ca">Archers</label><input id="ca" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile check-troop check-troop--infantry"><label class="lbl" for="ci"><i class="troop-icon troop-icon--infantry" aria-hidden="true"></i>Infantry</label><input id="ci" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile check-troop check-troop--cavalry"><label class="lbl" for="cc"><i class="troop-icon troop-icon--cavalry" aria-hidden="true"></i>Cavalry</label><input id="cc" type="text" inputmode="decimal" value="0"></div>
+        <div class="tile check-troop check-troop--archers"><label class="lbl" for="ca"><i class="troop-icon troop-icon--archers" aria-hidden="true"></i>Archers</label><input id="ca" type="text" inputmode="decimal" value="0"></div>
         <div class="tile"><label class="lbl" for="tol">Tolerance ± pp</label><input id="tol" type="text" inputmode="decimal" value="3"></div>
       </div>
       <div class="warnmsg" id="checkError" role="alert"></div>
     </div>
 
-    <div class="tablewrap check-results"><table class="checktable" id="checkRows" aria-live="polite"></table></div>
-    <div id="verdict"></div>
+    <div class="tablewrap check-results" tabindex="0" role="region" aria-label="March composition comparison"><table class="checktable" id="checkRows" aria-live="polite"></table></div>
+    <div id="verdict" role="status" aria-live="polite"></div>
     <div class="sr-only" id="copyStatus" role="status" aria-live="polite"></div>
   </section>
 

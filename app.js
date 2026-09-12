@@ -38,30 +38,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const popover = skillPopover(trigger);
     if(!popover.classList.contains('is-open')) return;
     const card = trigger.closest('.herocard').getBoundingClientRect();
+    const anchor = trigger.getBoundingClientRect();
     const viewportWidth = document.documentElement.clientWidth;
     const viewportHeight = window.innerHeight;
-    const gap = 12;
+    const gap = 8;
     const edge = 12;
     popover.style.maxWidth = `${viewportWidth - edge * 2}px`;
     popover.style.maxHeight = `${viewportHeight - edge * 2}px`;
     const width = popover.offsetWidth;
     const height = popover.offsetHeight;
-    const roomRight = viewportWidth - card.right - gap;
+    const roomRight = viewportWidth - anchor.right - gap;
     const roomLeft = card.left - gap;
     let placement;
     let left;
     let top;
     if(roomRight >= width){
       placement = 'right';
-      left = card.right + gap;
-      top = card.top + (card.height - height) / 2;
+      left = anchor.right + gap;
+      top = anchor.top;
     }else if(roomLeft >= width){
       placement = 'left';
       left = card.left - gap - width;
-      top = card.top + (card.height - height) / 2;
+      top = anchor.top;
     }else{
       placement = 'above';
-      left = card.left + (card.width - width) / 2;
+      left = anchor.left + (anchor.width - width) / 2;
       top = card.top - gap - height;
     }
     left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
@@ -197,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const n = Math.min(MAX_MARCHES, Math.max(1, Math.floor(+$('n').value || 1)));
     document.querySelectorAll('#nScale span').forEach((span, i) => {
       span.classList.toggle('on', i + 1 <= n);
+      span.classList.toggle('is-current', i + 1 === n);
     });
   }
 
@@ -247,8 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function syncHeroCards(order, n){
     let benched = 0;
-    HERO_SLOTS.forEach(h => {
+    const priorityChips = $('heroPriority').querySelectorAll('.hero-priority-chip');
+    HERO_SLOTS.forEach((h, index) => {
       const on = $(h.id).checked;
+      priorityChips[index].classList.toggle('is-disabled', !on);
+      priorityChips[index].setAttribute('aria-label', `${index + 1}. ${HEROES[h.key].name}${on ? '' : ', disabled'}`);
+      priorityChips[index].title = on ? HEROES[h.key].name : `${HEROES[h.key].name} — disabled`;
       const slot = order.indexOf(h.key);
       const leads = on && slot > -1 && slot < n;
       if(on && !leads) benched++;
@@ -278,12 +284,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!Number.isFinite(cap)){
       return `<div class="capacity-use unlimited">${fmt(used)} / ∞ · no limit</div>`;
     }
-    const percent = cap > 0 ? Math.min(100, used / cap * 100) : 0;
+    const percent = cap > 0 ? used / cap * 100 : 0;
     const hasRoom = used < cap;
-    const state = used <= 0 ? 'is-empty' : hasRoom ? 'has-room' : 'is-full';
+    const state = used > cap ? 'is-over' : used <= 0 ? 'is-empty' : hasRoom ? 'has-room' : 'is-full';
     return `<div class="capacity-use ${state}">`
       + `<div>${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</div>`
-      + `<div class="bar" aria-hidden="true"><i style="width:${percent.toFixed(2)}%"></i></div></div>`;
+      + `<div class="bar" aria-hidden="true"><i style="width:${Math.min(100,percent).toFixed(2)}%"></i></div></div>`;
   }
 
   function setVal(id, text){
@@ -404,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lastResult = null;
     $('copyFormation').disabled = true;
     setVal('tTotal', '–');
+    $('totalUsage').textContent = '';
     setVal('tLim', '–');
     $('limHint').textContent = '';
     $('rows').innerHTML = '';
@@ -415,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(clearCapacity){
       setVal('tCap', '–');
       $('capBreak').textContent = '';
+      $('capBreakLabels').textContent = '';
       setVal('tNoCap', '–');
       $('capSum').textContent = '';
     }
@@ -435,6 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const parsedRatios = readRatios();
     const parsedMain = readAmounts(MAIN_AMOUNT_IDS);
+    [['squad','squadCapacityDisplay'],['cap','baseCapacityDisplay']].forEach(([inputId,outputId]) => {
+      const invalid = parsedMain.invalid.includes(inputId);
+      $(outputId).textContent = invalid ? 'Invalid value' : fullFmt(parsedMain.values[inputId]);
+      if(invalid){
+        $('capacityEdit').open = true;
+        $('foldCap').open = true;
+      }
+    });
     const capacityBase = parsedMain.invalid.includes('cap') ? null : parsedMain.values.cap;
     const capacityBuffs = syncCapacityBuffs(capacityBase);
     const summaryRatio = parsedRatios.invalid.length
@@ -467,6 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
     $('capBreak').textContent = isFinite(capHero)
       ? `${fmt(baseCap)} + ${fmt(capacityBuffs.valoraBonus)}`
         + (isBisonBuffEnabled ? ` + ${fmt(capacityBuffs.bisonRecordedBonus)}` : '') : '';
+    $('capBreakLabels').textContent = isFinite(capHero)
+      ? 'Base + Valora' + (isBisonBuffEnabled ? ' + Bison' : '') : 'No base capacity limit';
     setVal('tNoCap', isFinite(capNone) ? fmt(capNone) : '∞');
     $('capSum').textContent = `squad ${isFinite(capNone) ? fmt(capNone) : '∞'}`
       + ` · march ${isFinite(capHero) ? fmt(capHero) : '∞'}`;
@@ -518,6 +536,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const grand = tot.inf + tot.cav + tot.arc;
 
     setVal('tTotal', fmt(grand));
+    const availableTroops = S.inf + S.cav + S.arc;
+    $('totalUsage').textContent = availableTroops > 0
+      ? `${trim(grand / availableTroops * 100)}% of available troops` : 'No available troops';
 
     // Highlight every constraint that prevents one more whole troop from being
     // deployed, but only highlight capacity sources used by an active march.
@@ -543,9 +564,8 @@ document.addEventListener('DOMContentLoaded', () => {
         : troopLabels.join(' + ');
     } else if(bottlenecks.capacity){
       $('tileLim').classList.add('bn-cap');
-      $('limHint').textContent = capUsage.hero && capUsage.squad
-        ? 'Mixed march capacity'
-        : capUsage.hero ? 'Hero march capacity' : 'Squad capacity';
+      setVal('tLim', 'Capacity reached');
+      $('limHint').textContent = 'One or more marches are at capacity.';
     } else {
       setVal('tLim', '—');
       $('limHint').textContent = '';
@@ -553,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let h = '<thead><tr class="head"><th scope="col">March</th><th scope="col">Leader</th>'
       + '<th scope="col">Infantry</th><th scope="col">Cavalry</th><th scope="col">Archers</th>'
-      + '<th scope="col">Total</th><th scope="col">Capacity use</th></tr></thead><tbody>';
+      + '<th scope="col">Total</th><th scope="col">Capacity used</th></tr></thead><tbody>';
     for(let i = 0; i < n; i++){
       const x = rows[i];
       h += row(i+1, leaderCell(order[i]), fmt(x.inf), fmt(x.cav), fmt(x.arc),
@@ -563,8 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
       fmt(grand), capacityUse(grand, capTotal), 'sumline') + '</tfoot>';
     $('rows').innerHTML = h;
 
-    $('leftoverValues').textContent =
-      `${fmt(S.inf-tot.inf)} infantry · ${fmt(S.cav-tot.cav)} cavalry · ${fmt(S.arc-tot.arc)} archers`;
+    $('leftoverValues').innerHTML = [['inf','infantry'],['cav','cavalry'],['arc','archers']]
+      .map(([key,label]) => `<span class="remaining-troop"><i class="troop-icon troop-icon--${label}" aria-hidden="true"></i><span>${fmt(S[key]-tot[key])} ${label}</span></span>`).join('');
     $('leftover').hidden = false;
 
     lastResult = {r, S, order, strategy, perMarch, rows, tot, grand};
@@ -608,32 +628,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let h = '<thead><tr class="head"><th scope="col">Type</th><th scope="col">Actual %</th>'
-      + '<th scope="col">Target %</th><th scope="col">Should be</th></tr></thead><tbody>';
+      + '<th scope="col">Target %</th><th scope="col">Difference (pp)</th><th scope="col">Target count</th><th scope="col">Status</th></tr></thead><tbody>';
     for(const k of ['inf','cav','arc']){
       const off = Math.abs(delta[k]) > tol;
       const sign = delta[k] >= 0 ? '+' : '−';
-      const tag = off
-        ? `<span class="delta-bad">${sign}${Math.abs(delta[k]).toFixed(2)} pp</span>`
-        : `<span class="delta-ok">within ±${tol} pp</span>`;
-      h += `<tr class="line"><th scope="row">${NAMES[k]}</th>`
-         + `<td>${actual[k].toFixed(2)}%</td>`
+      const type = NAMES[k].toLowerCase();
+      h += `<tr class="line check-troop--${type}"><th scope="row"><span class="check-type"><i class="troop-icon troop-icon--${type}" aria-hidden="true"></i>${NAMES[k]}</span></th>`
+         + `<td><strong>${actual[k].toFixed(2)}%</strong><span class="check-composition-bar" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,actual[k]))}%"></span></span></td>`
          + `<td>${(r[k]*100).toFixed(2)}%</td>`
-         + `<td>${fmt(ideal[k])} &nbsp; ${tag}</td></tr>`;
+         + `<td class="check-difference ${off ? 'is-outside' : 'is-within'}">${sign}${Math.abs(delta[k]).toFixed(2)}</td>`
+         + `<td><strong>${fmt(ideal[k])}</strong><small class="check-tolerance">at ${fmt(total)} total</small></td>`
+         + `<td><span class="check-status ${off ? 'is-outside' : 'is-within'}">${off ? '! Outside range' : '✓ Within range'}</span></td></tr>`;
     }
     $('checkRows').innerHTML = h + '</tbody>';
 
     const ok = Math.abs(worst) <= tol;
     if(ok){
       $('verdict').innerHTML =
-        `<div class="verdict ok"><div class="head2">Matches the ratio</div>`
-        + `All three types are within ±${tol} pp of target across ${fmt(total)} troops.</div>`;
+        `<div class="verdict ok"><div><div class="head2">Matches the ratio</div>`
+        + `All three troop types are within ±${tol} pp of target across ${fmt(total)} troops.</div>`
+        + `<div class="check-total"><span>Total troops</span><strong>${fmt(total)}</strong></div></div>`;
     } else {
-      const dir = worst > 0 ? 'too many' : 'too few';
+      const dir = worst > 0 ? 'above' : 'below';
       const diff = Math.abs(C[worstKey] - ideal[worstKey]);
       $('verdict').innerHTML =
-        `<div class="verdict bad"><div class="head2">Off the ratio</div>`
-        + `${NAMES[worstKey]} is the worst offender — ${dir} by ${fmt(diff)} `
-        + `(${Math.abs(worst).toFixed(2)} pp). Adjust to the "should be" column to hit ${fmt(total)} on ratio.</div>`;
+        `<div class="verdict bad"><div><div class="head2">Ratio needs adjustment</div>`
+        + `${NAMES[worstKey]} ${worstKey === 'arc' ? 'are' : 'is'} ${fmt(diff)} ${dir} target `
+        + `(${worst > 0 ? '+' : '−'}${Math.abs(worst).toFixed(2)} pp). `
+        + `Target composition at ${fmt(total)} troops: ${fmt(ideal.inf)} Infantry · ${fmt(ideal.cav)} Cavalry · ${fmt(ideal.arc)} Archers.</div>`
+        + `<div class="check-total"><span>Total troops</span><strong>${fmt(total)}</strong></div></div>`;
     }
   }
 
@@ -835,6 +858,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function update(){ calc(); saveState(); }
 
   IDS.forEach(i => { $(i).addEventListener('input', update); $(i).addEventListener('change', update); });
+  document.querySelectorAll('[data-ratio-adjust]').forEach(button => {
+    button.addEventListener('click', () => {
+      const input = $(button.dataset.ratioAdjust);
+      const parsed = parseRatio(input.value);
+      if(!parsed.valid){ update(); return; }
+      const current = parsed.value;
+      const step = Number(button.dataset.ratioStep) || 0;
+      input.value = String(Math.max(0, current + step));
+      update();
+    });
+  });
   document.querySelectorAll('[data-capacity-skill-picker]').forEach(picker => {
     const input = $(picker.dataset.input);
     const trigger = picker.querySelector('.capacity-buff-level-trigger');

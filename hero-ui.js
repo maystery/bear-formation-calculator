@@ -288,8 +288,11 @@
   function renderHeroPriority(){
     const escapeHtml = value => value.replaceAll('&','&amp;').replaceAll('<','&lt;')
       .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-    return '<span>Assignment priority</span>'
-      + HERO_SLOTS.map(({key}) => escapeHtml(HEROES[key].name)).join(' <b>&rarr;</b> ');
+    return '<span class="hero-priority-label">Assignment priority</span>'
+      + '<span class="hero-priority-list" role="list">'
+      + HERO_SLOTS.map(({key}, index) => `<span class="hero-priority-chip" role="listitem">`
+        + `<b>${index + 1}</b><img class="hero-priority-avatar" src="${escapeHtml(HEROES[key].avatar)}" alt="" width="24" height="24"><span>${escapeHtml(HEROES[key].name)}</span></span>`).join('')
+      + '</span>';
   }
 
   return {
