@@ -146,8 +146,10 @@ test('hero cards compose one clipped SVG portrait with separate chrome and conte
     }else{
       assert.match(card, /<path class="hero-card__clip-shape" d="M 16 0 L /);
     }
-    const png = fs.readFileSync(path.join(projectRoot, hero.portrait));
-    assert.equal([4,6].includes(png[25]), true, `${hero.portrait} must contain an alpha channel`);
+    const webp = fs.readFileSync(path.join(projectRoot, hero.portrait));
+    assert.equal(webp.toString('ascii', 0, 4), 'RIFF');
+    assert.equal(webp.toString('ascii', 8, 16), 'WEBPVP8X');
+    assert.equal(Boolean(webp[20] & 0x10), true, `${hero.portrait} must contain an alpha channel`);
   }
   assert.equal(HEROES.amane.art.breakout.unrestricted, true);
   assert.equal(HEROES.ava.art.breakout.unrestricted, true);

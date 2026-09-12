@@ -85,6 +85,10 @@ It's a static site with no build step or external dependencies. Keep the reposit
 
 The files are separated by responsibility: `index.html` contains the markup, `styles.css` the presentation, `app.js` the browser behavior, and `calculator-core.js` the pure calculation logic.
 
+The page serves WebP artwork sized for high-density screens. The original PNGs remain alongside the exports for future edits. To regenerate the WebP files, install ImageMagick with WebP support and run `python3 scripts/export-artwork.py`. This is only needed when changing artwork; running the site needs no build step.
+
+Input changes render at most once per animation frame, and edits in **Check a march** update that section alone. Browser saves are debounced by 250 ms and flushed when the page is hidden or left. Feedback animations respect reduced-motion preferences.
+
 ## Tests
 
 The pure parsing and calculation logic lives in `calculator-core.js`. With Node.js installed, run the dependency-free regression suite using:
@@ -92,3 +96,16 @@ The pure parsing and calculation logic lives in `calculator-core.js`. With Node.
 ```sh
 npm test
 ```
+
+Optional browser regression checks cover rendering, saving, reset, shared setups, controls, and reduced motion. Install Playwright and its Chromium and WebKit browsers, then run:
+
+```sh
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium webkit
+npm run test:browser
+npm run test:mobile
+```
+
+These tools are only used for browser checks; the site and `npm test` remain dependency-free.
+
+The mobile suite uses touch emulation in Chromium and WebKit at 320, 360, 390, 430, 768, and 844 pixels, in light and dark themes. It checks card bounds, input text size, touch targets, menus, rotation, troop entry, table scrolling, copying, persistence, and reset. Run `npm run test:mobile -- --screenshots` to save viewport screenshots under `artifacts/browser/mobile/` for visual review. Browser emulation does not replace checks on a physical phone with its on-screen keyboard.

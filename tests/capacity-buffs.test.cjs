@@ -77,7 +77,7 @@ test('Bison enabled state persists independently and no Add Hero slot is rendere
 });
 
 test('capacity buff artwork exists and the obsolete Valora slider is gone', () => {
-  for(const asset of ['assets/buffs/valora.png','assets/buffs/mighty-bison.png']){
+  for(const asset of ['assets/buffs/valora.webp','assets/buffs/mighty-bison.webp']){
     assert.equal(fs.existsSync(path.join(projectRoot, asset)), true, asset);
     assert.match(index, new RegExp(asset.replaceAll('/','\\/')));
   }

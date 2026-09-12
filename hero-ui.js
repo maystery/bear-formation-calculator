@@ -6,36 +6,36 @@
   'use strict';
 
   const SEASON_BADGE_BY_SEASON = Object.freeze({
-    1:'assets/seasons/s1.png',
-    2:'assets/seasons/s2.png',
-    3:'assets/seasons/s3.png',
-    4:'assets/seasons/s4.png',
-    5:'assets/seasons/s5.png',
-    6:'assets/seasons/s6.png',
-    7:'assets/seasons/s7.png'
+    1:'assets/seasons/s1.webp',
+    2:'assets/seasons/s2.webp',
+    3:'assets/seasons/s3.webp',
+    4:'assets/seasons/s4.webp',
+    5:'assets/seasons/s5.webp',
+    6:'assets/seasons/s6.webp',
+    7:'assets/seasons/s7.webp'
   });
 
   const STAT_TYPES = Object.freeze({
     attack:Object.freeze({
-      label:'Attack', icon:'assets/skills/attack.png', description:'Increases Squad Attack.'
+      label:'Attack', icon:'assets/skills/attack.webp', description:'Increases Squad Attack.'
     }),
     lethality:Object.freeze({
-      label:'Lethality', icon:'assets/skills/leathality.png', description:'Increases Squad Lethality.'
+      label:'Lethality', icon:'assets/skills/leathality.webp', description:'Increases Squad Lethality.'
     }),
     defense:Object.freeze({
-      label:'Defense', icon:'assets/skills/def.png', description:'Increases Squad Defense.'
+      label:'Defense', icon:'assets/skills/def.webp', description:'Increases Squad Defense.'
     }),
     enemyDamageTaken:Object.freeze({
-      label:'Enemy DMG Taken', icon:'assets/skills/enemy_dmg_taken.png',
+      label:'Enemy DMG Taken', icon:'assets/skills/enemy_dmg_taken.webp',
       description:'Increases damage taken by enemy squads.'
     }),
     enemyDefense:Object.freeze({
-      label:'Enemy DEF', icon:'assets/skills/enemy_def.png',
+      label:'Enemy DEF', icon:'assets/skills/enemy_def.webp',
       description:'Reduces enemy squad Defense.'
     })
   });
 
-  const MIN_LEVEL_ICON = 'assets/skills/min_lvl.png';
+  const MIN_LEVEL_ICON = 'assets/skills/min_lvl.webp';
   const RECOMMENDED_STAT_VALUES = Object.freeze({lethality:20, attack:25});
 
   const HERO_ARTBOARD = Object.freeze({
@@ -44,10 +44,10 @@
 
   const HEROES = Object.freeze({
     none: {
-      name:'No hero', avatar:'assets/heroes/profile/none.png'
+      name:'No hero', avatar:'assets/heroes/profile/none.webp'
     },
     amadeus: {
-      name:'Amadeus', portrait:'assets/heroes/amadeus.png', avatar:'assets/heroes/profile/amadeus.png', inputId:'amaOn',
+      name:'Amadeus', portrait:'assets/heroes/amadeus.webp', avatar:'assets/heroes/profile/amadeus.webp', inputId:'amaOn',
       season:1, deployCap:'Hero deploy cap', requiredExpSkillLevel:null,
       expeditionSkill:{name:'Battle Ready', minLevel:4,
         effects:[{stat:'lethality', values:[5,10,15,20,25]}]},
@@ -56,7 +56,7 @@
         x:-8, y:-8, width:245, height:295}
     },
     chenko: {
-      name:'Chenko', portrait:'assets/heroes/chenko.png', avatar:'assets/heroes/profile/chenko.png', inputId:'chenkoOn',
+      name:'Chenko', portrait:'assets/heroes/chenko.webp', avatar:'assets/heroes/profile/chenko.webp', inputId:'chenkoOn',
       season:1, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Stand of Arms', minLevel:4,
         effects:[{stat:'lethality', values:[5,10,15,20,25]}]},
@@ -65,7 +65,7 @@
         x:-4, y:-6, width:235, height:288}
     },
     yeonwoo: {
-      name:'Yeonwoo', portrait:'assets/heroes/yeonwoo.png', avatar:'assets/heroes/profile/yeonwoo.png', inputId:'yeonwooOn',
+      name:'Yeonwoo', portrait:'assets/heroes/yeonwoo.webp', avatar:'assets/heroes/profile/yeonwoo.webp', inputId:'yeonwooOn',
       season:1, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'On Guard', minLevel:4,
         effects:[{stat:'lethality', values:[5,10,15,20,25]}]},
@@ -74,7 +74,7 @@
         x:-12, y:-22, width:260, height:315}
     },
     amane: {
-      name:'Amane', portrait:'assets/heroes/amane.png', avatar:'assets/heroes/profile/amane.png', inputId:'amaneOn',
+      name:'Amane', portrait:'assets/heroes/amane.webp', avatar:'assets/heroes/profile/amane.webp', inputId:'amaneOn',
       season:1, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Tri-Phalanx', minLevel:5,
         effects:[{stat:'attack', values:[5,10,15,20,25]}]},
@@ -83,7 +83,7 @@
         x:-14, y:-26, width:260, height:320}
     },
     margot: {
-      name:'Margot', portrait:'assets/heroes/margot.png', avatar:'assets/heroes/profile/margot.png', inputId:'margotOn',
+      name:'Margot', portrait:'assets/heroes/margot.webp', avatar:'assets/heroes/profile/margot.webp', inputId:'margotOn',
       season:4, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Warbringer', minLevel:5,
         effects:[{stat:'attack', values:[5,10,15,20,25]}]},
@@ -92,7 +92,7 @@
         x:-5, y:-7, width:240, height:292}
     },
     vivian: {
-      name:'Vivian', portrait:'assets/heroes/vivian.png', avatar:'assets/heroes/profile/vivian.png', inputId:'vivianOn',
+      name:'Vivian', portrait:'assets/heroes/vivian.webp', avatar:'assets/heroes/profile/vivian.webp', inputId:'vivianOn',
       season:5, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Crouching Tiger', minLevel:5,
         effects:[{stat:'enemyDamageTaken', values:[5,10,15,20,25]}]},
@@ -101,7 +101,7 @@
         x:-14, y:-26, width:265, height:320}
     },
     ava: {
-      name:'Ava', portrait:'assets/heroes/ava.png', avatar:'assets/heroes/profile/ava.png', inputId:'avaOn',
+      name:'Ava', portrait:'assets/heroes/ava.webp', avatar:'assets/heroes/profile/ava.webp', inputId:'avaOn',
       season:7, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Dissolution', minLevel:5,
         effects:[{stat:'enemyDefense', values:[-5,-10,-15,-20,-25]}]},
@@ -110,7 +110,7 @@
         x:-20, y:-32, width:270, height:330}
     },
     weeWoo: {
-      name:'Wee & Woo', portrait:'assets/heroes/weeandwoo.png', avatar:'assets/heroes/profile/wee-woo.png', inputId:'weeWooOn',
+      name:'Wee & Woo', portrait:'assets/heroes/weeandwoo.webp', avatar:'assets/heroes/profile/wee-woo.webp', inputId:'weeWooOn',
       season:7, deployCap:'Hero deploy cap', requiredExpSkillLevel:4,
       expeditionSkill:{name:'Artillerymen', minLevel:2, effects:[
         {stat:'attack', values:[3,6,9,12,15]},
@@ -121,7 +121,7 @@
         x:-10, y:-16, width:255, height:310}
     },
     hilde: {
-      name:'Hilde', portrait:'assets/heroes/hilde.png', avatar:'assets/heroes/profile/hilde.png', inputId:'hildeOn',
+      name:'Hilde', portrait:'assets/heroes/hilde.webp', avatar:'assets/heroes/profile/hilde.webp', inputId:'hildeOn',
       season:2, deployCap:'Hero deploy cap', requiredExpSkillLevel:5,
       expeditionSkill:{name:'Noble Path', minLevel:5, effects:[
         {stat:'attack', values:[3,6,9,12,15]},

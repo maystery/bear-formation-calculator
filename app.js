@@ -1,10 +1,3 @@
-  // runs before first paint so a forced theme doesn't flash the other one.
-  // the key must stay in sync with STORE_KEY below.
-  try{
-    var saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
-    var t = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved.theme : null;
-    if(t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-  }catch(e){}
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
   const {
@@ -159,11 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
       scheduleSkillClose(activeSkillTrigger);
     }
   }, true);
-  document.addEventListener('click', event => {
+  function dismissSkillDetails(event){
     if(!event.target.closest('.hero-skill-details') && !event.target.closest('.hero-skill-portal')){
       closeSkillDetails();
     }
-  });
+  }
+  // Safari does not always synthesize a click when a blank area is tapped.
+  document.addEventListener('pointerdown', dismissSkillDetails);
+  document.addEventListener('click', dismissSkillDetails);
   window.addEventListener('resize', scheduleSkillPosition);
   window.addEventListener('scroll', scheduleSkillPosition, true);
 
@@ -202,14 +198,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const feedbackAnimations = new WeakMap();
+  function animateFeedback(el, keyframes, options){
+    feedbackAnimations.get(el)?.cancel();
+    if(reducedMotion.matches || !el.animate) return;
+    feedbackAnimations.set(el, el.animate(keyframes, options));
+  }
+
   function setFieldValidity(id, valid, message){
     const el = $(id);
-    if(valid) el.removeAttribute('aria-invalid');
+    const wasInvalid = el.getAttribute('aria-invalid') === 'true';
+    if(valid){
+      el.removeAttribute('aria-invalid');
+      if(wasInvalid) feedbackAnimations.get(el)?.cancel();
+    }
     else{
       el.setAttribute('aria-invalid', 'true');
-      el.classList.remove('shake');
-      void el.offsetWidth;
-      el.classList.add('shake');
+      if(!wasInvalid){
+        animateFeedback(el, [0, -4, 4, -3, 3, 0].map(x => ({transform:`translateX(${x}px)`})),
+          {duration:300, easing:'ease'});
+      }
     }
     el.setCustomValidity(valid ? '' : message);
   }
@@ -296,9 +305,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = $(id);
     if(el.textContent === text) return;
     el.textContent = text;
-    el.classList.remove('flash');
-    void el.offsetWidth;
-    el.classList.add('flash');
+    animateFeedback(el, [
+      {transform:'scale(.94)', background:'color-mix(in srgb,var(--text-accent) 26%,transparent)', offset:0},
+      {transform:'scale(1.02)', offset:.45},
+      {transform:'scale(1)', background:'transparent', offset:1}
+    ], {duration:450, easing:'ease'});
   }
 
   const fixedCapacity = value => value >= 1000
@@ -760,6 +771,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   $('copyFormation').addEventListener('click', async () => {
+    flushUpdate();
+    if(!lastResult) return;
     try{
       await copyText(formationText());
       copyFeedback($('copyFormation'), 'Formation copied', true);
@@ -769,6 +782,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('copySetup').addEventListener('click', async () => {
+    flushUpdate();
+    if($('copySetup').disabled) return;
     try{
       await copyText(setupUrl());
       copyFeedback($('copySetup'), 'Link copied', true);
@@ -796,7 +811,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  let saveTimer = null;
+  let resetting = false;
   function saveState(){
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if(resetting) return;
     const o = {};
     IDS.forEach(id => {
       const el = $(id);
@@ -808,6 +828,20 @@ document.addEventListener('DOMContentLoaded', () => {
     o.theme = theme;
     store.write(o);
   }
+
+  function scheduleSave(){
+    if(resetting) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveState, 250);
+  }
+
+  function flushSave(){
+    if(saveTimer !== null) saveState();
+  }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'hidden') flushSave();
+  });
 
   function loadState(){
     const o = store.read();
@@ -848,16 +882,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   $('theme').addEventListener('click', () => {
     applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
-    $('themeIcon').animate([
+    animateFeedback($('themeIcon'), [
       {transform:'rotate(-100deg) scale(.6)', opacity:0},
       {transform:'rotate(0deg) scale(1)', opacity:1}
     ], {duration:320, easing:'ease-out'});
-    saveState();
+    scheduleSave();
   });
 
-  function update(){ calc(); saveState(); }
+  const checkInputIds = new Set([...CHECK_AMOUNT_IDS, 'tol']);
+  let updateFrame = null;
+  let needsCalculation = false;
+  function flushUpdate(){
+    if(updateFrame === null) return;
+    cancelAnimationFrame(updateFrame);
+    updateFrame = null;
+    const fullUpdate = needsCalculation;
+    needsCalculation = false;
+    if(fullUpdate) calc();
+    else if(lastResult) check(lastResult.r);
+  }
 
-  IDS.forEach(i => { $(i).addEventListener('input', update); $(i).addEventListener('change', update); });
+  function update(event){
+    if(resetting) return;
+    // A formation change takes precedence over checker edits in the same frame.
+    if(!checkInputIds.has(event?.target?.id)) needsCalculation = true;
+    if(updateFrame === null) updateFrame = requestAnimationFrame(flushUpdate);
+    scheduleSave();
+  }
+
+  IDS.forEach(id => {
+    const el = $(id);
+    const event = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(event, update);
+  });
   document.querySelectorAll('[data-ratio-adjust]').forEach(button => {
     button.addEventListener('click', () => {
       const input = $(button.dataset.ratioAdjust);
@@ -931,11 +988,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     $('capacityBuffPortal').appendChild(menu);
   });
-  document.addEventListener('click', event => {
+  function dismissCapacityPickers(event){
     if(!event.target.closest('[data-capacity-skill-picker]') && !event.target.closest('.capacity-buff-level-menu')){
       closeCapacitySkillPickers();
     }
-  });
+  }
+  document.addEventListener('pointerdown', dismissCapacityPickers);
+  document.addEventListener('click', dismissCapacityPickers);
   window.addEventListener('resize', () => closeCapacitySkillPickers());
   window.addEventListener('scroll', () => closeCapacitySkillPickers(), true);
   $('bisonBuff').addEventListener('click', () => {
@@ -943,8 +1002,8 @@ document.addEventListener('DOMContentLoaded', () => {
     update();
   });
   document.querySelectorAll('input[name="fillStrategy"]')
-    .forEach(el => { el.addEventListener('input', update); el.addEventListener('change', update); });
-  FOLDS.forEach(i => $(i).addEventListener('toggle', saveState));
+    .forEach(el => el.addEventListener('change', update));
+  FOLDS.forEach(i => $(i).addEventListener('toggle', scheduleSave));
 
   $('the').addEventListener('click', () => {
     $('ri').value = 10; $('rc').value = 10; $('ra').value = 80;
@@ -952,6 +1011,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('reset').addEventListener('click', () => {
+    resetting = true;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    cancelAnimationFrame(updateFrame);
+    updateFrame = null;
+    needsCalculation = false;
     store.clear();
     const url = new URL(window.location.href);
     const hasSharedSetup = url.searchParams.get('setup') === '1';

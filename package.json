@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:browser": "node scripts/check-browser.cjs",
+    "test:mobile": "node scripts/check-mobile.cjs"
   }
 }
