@@ -376,14 +376,26 @@
    * @param {number | null} [recommendedValue] */
   function skillLevelRows(effect, recommendedLevel, selectedLevel = null, recommendedValue = null) {
     const signedPercent = (value) => `${value < 0 ? '&minus;' : '+'}${Math.abs(value)}%`;
+    const steps = effect.values.slice(1).map((value, index) => value - effect.values[index]);
+    const step = steps[0];
+    const uniform = steps.length > 0 && steps.every((value) => Math.abs(value - step) < 1e-9);
+    const maximum = Math.max(...effect.values.map(Math.abs), 0);
+    const progression =
+      '<span class="skill-progression">' +
+      '<span class="skill-progression__label">Level progression</span>' +
+      (uniform
+        ? `<span class="skill-progression__step">` +
+          `<strong>${signedPercent(Number(step.toFixed(6)))}</strong><span> / level</span></span>`
+        : '') +
+      '</span>';
     const effectiveSelectedLevel =
       typeof selectedLevel === 'number' && Number.isFinite(selectedLevel)
         ? Math.min(effect.values.length, Math.max(1, Math.trunc(selectedLevel)))
         : null;
-    return effect.values
+    const rows = effect.values
       .map((value, index) => {
         const level = index + 1;
-        const increase = index ? value - effect.values[index - 1] : null;
+        const strength = maximum > 0 ? (Math.abs(value) / maximum) * 100 : 0;
         const states = [
           level === recommendedLevel ? 'is-recommended-level' : '',
           level === effectiveSelectedLevel ? 'is-selected' : '',
@@ -401,15 +413,13 @@
         return (
           `<span class="skill-level-row${states ? ` ${states}` : ''}"` +
           `${labels ? ` aria-label="${labels}"` : ''}>` +
-          `<span>Lv. ${level}</span><strong>${signedPercent(value)}</strong>` +
-          `<span class="skill-level-delta">${
-            increase === null
-              ? ''
-              : `${increase < 0 ? '&#9660;' : '&#9650;'} ${signedPercent(increase)}`
-          }</span></span>`
+          `<span>Lv. ${level}</span>` +
+          `<span class="skill-level-track" aria-hidden="true"><span style="width:${strength}%"></span></span>` +
+          `<strong>${signedPercent(value)}</strong></span>`
         );
       })
       .join('');
+    return progression + rows;
   }
 
   function skillDetails(hero, key) {
@@ -444,9 +454,7 @@
           `<strong class="hero-skill-popover__name">${skill.name}</strong>` +
           `<span class="hero-skill-popover__recommendation"><img src="${RECOMMENDED_LEVEL_ICON}" alt="">` +
           `<span>Recommended: <strong>Lv. ${skill.recommendedLevel}</strong></span></span>` +
-          `<span class="hero-skill-effects">${effectMarkup}</span>` +
-          `<span class="skill-popover-note">&#9733; Recommended level &middot; Filled = recommended value` +
-          `${skill.selectedLevel ? ' &middot; &#9654; Selected' : ''}</span></span>`
+          `<span class="hero-skill-effects">${effectMarkup}</span></span>`
         );
       })
       .join('');

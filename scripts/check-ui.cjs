@@ -134,17 +134,28 @@ for (const engine of ['chromium', 'webkit']) {
       assert.match(await host.locator('[aria-label="recommended level"]').innerText(), /Lv\. 3/);
       assert.match(await host.locator('[aria-label="recommended value"]').innerText(), /Lv\. 4/);
       assert.match(await host.locator('[aria-label="selected level"]').innerText(), /Lv\. 5/);
-      assert.equal(await host.locator('.skill-level-delta').nth(0).innerText(), '');
-      assert.match(await host.locator('.skill-level-delta').nth(1).innerText(), /▲ \+5%/);
+      assert.equal(await host.locator('.skill-progression__step').count(), 1);
+      assert.match(await host.locator('.skill-progression__step').innerText(), /\+5%\s*\/ level/);
       await host.evaluate((element) => {
         element.innerHTML = BearHeroUI.skillLevelRows({ values: [-5, -10, -15, -20, -25] }, 2, 10);
       });
       assert.match(await host.locator('[aria-label="selected level"]').innerText(), /Lv\. 5/);
-      assert.match(await host.locator('.skill-level-delta').nth(1).innerText(), /▼ −5%/);
+      assert.match(await host.locator('.skill-progression__step').innerText(), /−5%\s*\/ level/);
       await host.evaluate((element) => {
         element.innerHTML = BearHeroUI.skillLevelRows({ values: [3, 6, 9, 12, 15] }, 2, null, 25);
       });
       assert.equal(await host.locator('.is-recommended-value').count(), 0);
+      await host.evaluate((element) => {
+        element.innerHTML = BearHeroUI.skillLevelRows({ values: [5, 10, 20, 35, 50] }, 4);
+      });
+      assert.equal(await host.locator('.skill-progression__step').count(), 0);
+      assert.deepEqual(await host.locator('.skill-level-row strong').allTextContents(), [
+        '+5%',
+        '+10%',
+        '+20%',
+        '+35%',
+        '+50%',
+      ]);
     });
 
     test('capacity controls expose accessible semantics and keyboard selection', async ({
