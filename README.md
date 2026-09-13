@@ -12,10 +12,10 @@ Splits your troops into up to 7 bear hunt marches at a fixed composition ratio (
    T_troops = min(Inf / r_inf, Cav / r_cav, Arc / r_arc)
    ```
 
-2. **Per-march cap.** Marches are *not* all worth the same. A march led by a hero uses your base deploy cap plus Valora's **Savage Advantage** (skill 4), which adds +3,000 Bear Hunt squad capacity per level, up to +30,000 at Lv. 10. A march with no hero left to lead it is held to the plain squad deployment capacity instead:
+2. **Per-march cap.** Marches are _not_ all worth the same. A march led by a hero uses your base deploy cap plus Valora's **Savage Advantage** (skill 4), which adds +3,000 Bear Hunt squad capacity per level, up to +30,000 at Lv. 10. When enabled, Mighty Bison’s **Fearless Roar** adds another +1,500 per selected skill level, up to +15,000 at Lv. 10. Its selected level is saved even while inactive. A march with no hero left to lead it is held to the plain squad deployment capacity instead:
 
    ```
-   cap_hero = base deploy cap + 3,000 × savage_level
+   cap_hero = base deploy cap + 3,000 × valora_level + (bison active ? 1,500 × bison_level : 0)
    cap_none = squad deployment capacity
    ```
 
@@ -46,9 +46,9 @@ Marches are capped at 7, the game's limit.
 
 ## Heroes
 
-Six heroes can lead a march: **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, **Margot** and **Hilde**. They take marches in that priority order, and each hero you enable converts a march from the squad cap to the larger hero cap.
+Nine heroes can lead a march, in this assignment priority: **Wee & Woo**, **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, **Margot**, **Vivian**, **Ava**, and **Hilde**. Each enabled hero converts a march from the squad cap to the hero cap. Amadeus starts disabled; the other eight start enabled.
 
-Untick a hero to drop them from the split — if you don't own them, haven't levelled their skill, or just want to see the numbers without them. Hilde needs her first Expedition skill at **level 5 minimum**, while Margot, Chenko, Yeonwoo and Amane need theirs at **level 4 minimum**, to be worth counting. Enable more heroes than you have marches and the extras simply sit out.
+Untick a hero to leave them out of the split. The cards show recommended skill levels and effect progression; the priority strip shows assignment order. Enable more heroes than you have marches and the extras sit out. The calculator still supports at most seven marches.
 
 ## Example
 
@@ -83,7 +83,9 @@ Use **Copy formation** to copy the calculated marches as readable text. The resu
 
 It's a static site with no build step or external dependencies. Keep the repository files together, then open `index.html` in any browser, online or off.
 
-The files are separated by responsibility: `index.html` contains the markup, `styles.css` the presentation, `app.js` the browser behavior, and `calculator-core.js` the pure calculation logic.
+`app.js` initializes the page and schedules updates. Browser controllers own their individual controls; the calculation and settings modules also run directly in Node. See [the maintenance guide](docs/maintaining.md) for file responsibilities and how to add a field or hero.
+
+`styles.css` has named component sections, with touch, responsive, theme, and motion rules beside their components. The HTML loads classic deferred scripts in dependency order, preserving support for opening `index.html` directly without a server.
 
 The page serves WebP artwork sized for high-density screens. The original PNGs remain alongside the exports for future edits. To regenerate the WebP files, install ImageMagick with WebP support and run `python3 scripts/export-artwork.py`. This is only needed when changing artwork; running the site needs no build step.
 
@@ -99,17 +101,19 @@ The pure parsing and calculation logic lives in `calculator-core.js`. With Node.
 npm test
 ```
 
-Optional browser regression checks cover rendering, saving, reset, shared setups, controls, and reduced motion. Install Playwright and its Chromium and WebKit browsers, then run:
+Browser regression checks cover rendering, saving, reset, shared setups, controls, and reduced motion. Use Node.js 24 (the version in `.nvmrc` and CI). Install the pinned development dependencies and matching Chromium and WebKit browsers, then run:
 
 ```sh
-npm install --no-save --package-lock=false playwright
+npm ci
 npx playwright install chromium webkit
-npm run test:browser
-npm run test:mobile
-npm run test:performance
+npm run test:all
 ```
 
-These tools are only used for browser checks; the site and `npm test` remain dependency-free.
+`npm run check` runs ESLint, Prettier, and the TypeScript checker without emitting files. Run it before opening a pull request; CI runs the same check before the test suites.
+
+Playwright is pinned in `package.json` and `package-lock.json` and is only used for browser checks; the site and `npm test` remain dependency-free. Individual suites are available as `test:browser`, `test:mobile`, and `test:performance`.
+
+GitHub Actions runs all suites on pushes and pull requests and uploads mobile screenshots. On Linux, `npx playwright install --with-deps chromium webkit` also installs the required system libraries.
 
 The performance suite checks lazy portrait loading, stable card dimensions, off-screen animations, unchanged control updates, and popup scroll work in Chromium and WebKit. It also covers collapsed hero sections and the fallback for browsers without intersection observation.
 

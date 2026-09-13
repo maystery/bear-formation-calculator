@@ -1,0 +1,6 @@
+node_modules/
+artifacts/
+assets/
+conversation.md
+docs/*.png
+package-lock.json

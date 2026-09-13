@@ -2,10 +2,27 @@
   "name": "bear-formation-calculator",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "test": "node --test",
-    "test:browser": "node scripts/check-browser.cjs",
+    "test:browser": "node --test scripts/check-browser.cjs scripts/check-ui.cjs",
     "test:mobile": "node scripts/check-mobile.cjs",
-    "test:performance": "node scripts/check-performance.cjs"
+    "test:performance": "node scripts/check-performance.cjs",
+    "test:all": "npm run check && npm test && npm run test:browser && npm run test:mobile && npm run test:performance",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write \"*.{js,css,html,json,mjs,ts}\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
+    "format:check": "prettier --check \"*.{js,css,html,json,mjs,ts}\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
+    "typecheck": "tsc",
+    "check": "npm run lint && npm run format:check && npm run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.10.0",
+    "globals": "17.12.0",
+    "playwright": "1.63.0",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2"
   }
 }

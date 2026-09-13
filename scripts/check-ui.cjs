@@ -1,0 +1,202 @@
+'use strict';
+const assert = require('node:assert/strict');
+const { browserSuite, nextPaint, tap, fitsViewport } = require('./helpers/browser-suite.cjs');
+
+for (const engine of ['chromium', 'webkit']) {
+  browserSuite(`Rendered UI: ${engine}`, { engine }, (test) => {
+    test('hero cards and priority chips follow metadata and accessible relationships', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      const issues = await page.evaluate(() => {
+        const issues = [];
+        const { HEROES, HERO_SLOTS } = BearHeroUI;
+        const chips = [...document.querySelectorAll('.hero-priority-chip')];
+        if (chips.length !== HERO_SLOTS.length)
+          issues.push('Priority count differs from hero count');
+        for (const [index, slot] of HERO_SLOTS.entries()) {
+          const hero = HEROES[slot.key];
+          const card = document.querySelector(`[data-hero="${slot.key}"]`);
+          const input = document.getElementById(slot.id);
+          if (card.htmlFor !== input.id || input.type !== 'checkbox')
+            issues.push(`${slot.key}: missing checkbox label`);
+          if (input.checked !== hero.defaultEnabled)
+            issues.push(`${slot.key}: wrong default selection`);
+          for (const id of input.getAttribute('aria-describedby').split(' ')) {
+            if (!document.getElementById(id)) issues.push(`${slot.key}: broken description ${id}`);
+          }
+          const chip = chips[index];
+          if (
+            chip.querySelector('b').textContent !== String(index + 1) ||
+            chip.querySelector('span').textContent !== hero.name ||
+            chip.querySelector('img').getAttribute('src') !== hero.avatar
+          )
+            issues.push(`${slot.key}: wrong priority`);
+          const portraits = card.querySelectorAll('.hero-card__image');
+          const portrait = portraits[0];
+          if (
+            portraits.length !== 1 ||
+            (portrait.getAttribute('href') || portrait.dataset.src) !== hero.portrait
+          ) {
+            issues.push(`${slot.key}: duplicate or incorrect portrait`);
+          }
+          const clipId = portrait.getAttribute('clip-path').slice(5, -1);
+          if (
+            !card.querySelector('clipPath') ||
+            !document.getElementById(clipId)?.querySelector('path')
+          ) {
+            issues.push(`${slot.key}: missing SVG clip`);
+          }
+          if (
+            card.querySelector('.season-badge').getAttribute('aria-label') !==
+            `Season ${hero.season}`
+          ) {
+            issues.push(`${slot.key}: wrong season`);
+          }
+          if (
+            !card
+              .querySelector('.hero-skill-recommendation')
+              .textContent.replace(/\s+/g, ' ')
+              .includes(`Recommended Lv. ${hero.expeditionSkill.recommendedLevel}`)
+          ) {
+            issues.push(`${slot.key}: wrong recommendation`);
+          }
+          const triggers = [...card.querySelectorAll('.hero-stat--interactive')];
+          if (triggers.length !== hero.expeditionSkill.effects.length)
+            issues.push(`${slot.key}: missing skill trigger`);
+          for (const trigger of triggers) {
+            const popover = document.getElementById(trigger.getAttribute('aria-controls'));
+            if (
+              !popover ||
+              popover.parentElement.id !== 'heroSkillPortal' ||
+              popover.getAttribute('role') !== 'tooltip'
+            ) {
+              issues.push(`${slot.key}: broken popover relationship`);
+            }
+          }
+        }
+        return issues;
+      });
+      assert.deepEqual(issues, []);
+    });
+
+    test('hero artwork layers reserve geometry and keep controls above the portrait', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      const layers = await page.locator('[data-hero="chenko"]').evaluate((card) => {
+        const style = (selector) => getComputedStyle(card.querySelector(selector));
+        const portrait = card.querySelector('.hero-card__art').getBoundingClientRect();
+        const cardBounds = card.getBoundingClientRect();
+        const content = card.querySelector('.hero-card__content').getBoundingClientRect();
+        return {
+          overflow: getComputedStyle(card).overflow,
+          surfaceOverflow: style('.hero-card__surface').overflow,
+          portraitOverflow: style('.hero-card__art').overflow,
+          border: Number(style('.hero-card__border').zIndex),
+          art: Number(style('.hero-card__art').zIndex),
+          fade: Number(style('.hero-card__art-fade').zIndex),
+          content: Number(style('.hero-card__content').zIndex),
+          bottom: Number(getComputedStyle(card, '::after').zIndex),
+          portraitExtendsAbove: portrait.top < cardBounds.top,
+          contentFits: content.right <= cardBounds.right + 1 && content.left >= cardBounds.left,
+          badgeWidth: parseFloat(style('.season-badge').width),
+        };
+      });
+      assert.equal(layers.overflow, 'visible');
+      assert.equal(layers.surfaceOverflow, 'hidden');
+      assert.equal(layers.portraitOverflow, 'visible');
+      assert.ok(
+        layers.border < layers.art && layers.art < layers.fade && layers.fade < layers.content,
+      );
+      assert.ok(layers.bottom > layers.art);
+      assert.ok(layers.portraitExtendsAbove && layers.contentFits);
+      assert.equal(layers.badgeWidth, 74);
+      assert.equal(await page.locator('.stat-legend__item').count(), 5);
+    });
+
+    test('skill progression identifies level, value, selection and negative effects', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      // Parse renderer output in the browser instead of asserting serialized HTML.
+      await page.evaluate(() => {
+        const host = document.createElement('div');
+        host.id = 'skill-render-test';
+        host.innerHTML = BearHeroUI.skillLevelRows({ values: [5, 10, 15, 20, 25] }, 3, 5, 20);
+        document.body.appendChild(host);
+      });
+      const host = page.locator('#skill-render-test');
+      assert.equal(await host.locator('.skill-level-row').count(), 5);
+      assert.match(await host.locator('[aria-label="recommended level"]').innerText(), /Lv\. 3/);
+      assert.match(await host.locator('[aria-label="recommended value"]').innerText(), /Lv\. 4/);
+      assert.match(await host.locator('[aria-label="selected level"]').innerText(), /Lv\. 5/);
+      assert.equal(await host.locator('.skill-level-delta').nth(0).innerText(), '');
+      assert.match(await host.locator('.skill-level-delta').nth(1).innerText(), /▲ \+5%/);
+      await host.evaluate((element) => {
+        element.innerHTML = BearHeroUI.skillLevelRows({ values: [-5, -10, -15, -20, -25] }, 2, 10);
+      });
+      assert.match(await host.locator('[aria-label="selected level"]').innerText(), /Lv\. 5/);
+      assert.match(await host.locator('.skill-level-delta').nth(1).innerText(), /▼ −5%/);
+      await host.evaluate((element) => {
+        element.innerHTML = BearHeroUI.skillLevelRows({ values: [3, 6, 9, 12, 15] }, 2, null, 25);
+      });
+      assert.equal(await host.locator('.is-recommended-value').count(), 0);
+    });
+
+    test('capacity controls expose accessible semantics and keyboard selection', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      const toggle = page.getByRole('switch');
+      assert.equal(await toggle.evaluate((element) => element.tagName), 'BUTTON');
+      assert.equal(await toggle.getAttribute('aria-checked'), 'false');
+      await toggle.focus();
+      await page.keyboard.press('Space');
+      await nextPaint(page);
+      assert.equal(await toggle.getAttribute('aria-checked'), 'true');
+      for (const skill of ['valora', 'bison']) {
+        const trigger = page.locator(`#${skill}SkillTrigger`);
+        await trigger.focus();
+        await page.keyboard.press('ArrowDown');
+        const menu = page.locator(`#${skill}SkillMenu`);
+        assert.equal(await menu.getAttribute('role'), 'listbox');
+        assert.equal(await menu.getByRole('option').count(), 10);
+        await page.keyboard.press('Home');
+        await page.keyboard.press('Enter');
+        await nextPaint(page);
+        assert.equal(await page.locator(`#${skill}Skill`).inputValue(), '1');
+        assert.equal(await menu.isVisible(), false);
+      }
+      assert.equal(await page.locator('#sav').count(), 0);
+    });
+
+    test(
+      'narrow hero recommendations and popovers stay readable',
+      async ({ page, url }) => {
+        await page.goto(url);
+        const trigger = '[data-hero="weeWoo"] .hero-stat--attack';
+        await tap(page, trigger);
+        const popover = '#skill-popover-weeWoo-attack';
+        await fitsViewport(page, popover);
+        assert.match(await page.locator(popover).innerText(), /Recommended: Lv\. 2/);
+        assert.equal(
+          await page.locator(popover).evaluate((element) => getComputedStyle(element).position),
+          'fixed',
+        );
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator(trigger).getAttribute('aria-expanded'), 'false');
+      },
+      {
+        viewport: { width: 320, height: 568 },
+        isMobile: true,
+        hasTouch: true,
+        reducedMotion: 'reduce',
+      },
+    );
+  });
+}
