@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Release history · Bear Formation Calculator</title>
+    <script>
+      // Apply the saved theme before paint. Keep the key in sync with settings.js.
+      try {
+        const saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
+        const theme =
+          saved && typeof saved === 'object' && !Array.isArray(saved) ? saved.theme : null;
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../release-history.js" defer></script>
+    <script src="../changelog.js" defer></script>
+  </head>
+  <body>
+    <main class="wrap changelog-page">
+      <a class="changelog-back" href="../index.html">← Back to calculator</a>
+      <header class="pagehead">
+        <div>
+          <h1>Release history</h1>
+          <p class="sub">Changes and improvements by version.</p>
+        </div>
+      </header>
+      <div class="changelog-entries" id="releaseEntries"></div>
+    </main>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "bear-formation-calculator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -12,8 +12,8 @@
     "test:performance": "node scripts/check-performance.cjs",
     "test:all": "npm run check && npm test && npm run test:browser && npm run test:mobile && npm run test:performance",
     "lint": "eslint . --max-warnings=0",
-    "format": "prettier --write \"*.{js,css,html,json,mjs,ts}\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
-    "format:check": "prettier --check \"*.{js,css,html,json,mjs,ts}\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
+    "format": "prettier --write \"*.{js,css,html,json,mjs,ts}\" \"changelog/*.html\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
+    "format:check": "prettier --check \"*.{js,css,html,json,mjs,ts}\" \"changelog/*.html\" \"scripts/**/*.cjs\" \"tests/**/*.cjs\" README.md docs/maintaining.md .github/workflows/tests.yml .prettierrc.json",
     "typecheck": "tsc",
     "check": "npm run lint && npm run format:check && npm run typecheck"
   },

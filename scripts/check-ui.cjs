@@ -1,9 +1,107 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { browserSuite, nextPaint, tap, fitsViewport } = require('./helpers/browser-suite.cjs');
+const { releases, versionAnchor } = require('../release-history.js');
+const { pathToFileURL } = require('node:url');
+const path = require('node:path');
 
 for (const engine of ['chromium', 'webkit']) {
   browserSuite(`Rendered UI: ${engine}`, { engine }, (test) => {
+    test('footer version navigates to release history and back without changing settings', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      await page.locator('#si').fill('123k');
+      const version = page.locator('#appVersion');
+      assert.equal(await version.textContent(), `v${releases[0].version}`);
+      assert.equal(await page.locator('.site-footer details, #releaseEntries').count(), 0);
+      await version.focus();
+      assert.equal(await version.evaluate((link) => getComputedStyle(link).outlineStyle), 'solid');
+      await page.keyboard.press('Enter');
+      await page.waitForURL(`${url}changelog/#${versionAnchor(releases[0].version)}`);
+      assert.equal(await page.locator('h1').textContent(), 'Release history');
+      assert.deepEqual(
+        await page
+          .locator('.release-entry')
+          .evaluateAll((entries) => entries.map((entry) => entry.id)),
+        releases.map((release) => versionAnchor(release.version)),
+      );
+      for (const release of releases) {
+        const entry = page.locator(`#${versionAnchor(release.version)}`);
+        assert.deepEqual(await entry.locator('li').allTextContents(), release.changes);
+        assert.equal(await entry.locator('.release-entry__title').textContent(), release.title);
+      }
+      assert.equal(await page.locator('.release-entry__current').count(), 1);
+      assert.equal(
+        await page
+          .locator('.release-entry')
+          .first()
+          .locator('.release-entry__current')
+          .textContent(),
+        'Current',
+      );
+      await page.getByRole('link', { name: '← Back to calculator' }).click();
+      await page.waitForURL(`${url}index.html`);
+      assert.equal(await page.locator('#si').inputValue(), '123k');
+    });
+
+    test('changelog supports direct routes, saved and system themes, and narrow layouts', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(`${url}changelog/`);
+      for (const theme of ['light', 'dark']) {
+        const saved = JSON.stringify({ theme, si: '234k' });
+        await page.evaluate((value) => localStorage.setItem('bearcalc.v1', value), saved);
+        await page.emulateMedia({ colorScheme: theme === 'light' ? 'dark' : 'light' });
+        for (const width of [320, 1180]) {
+          await page.setViewportSize({ width, height: 900 });
+          await page.goto(`${url}changelog`);
+          await page.waitForURL(`${url}changelog/`);
+          assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
+          assert.equal(
+            await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+            true,
+          );
+          assert.equal(await page.evaluate(() => localStorage.getItem('bearcalc.v1')), saved);
+          assert.ok((await page.locator('main').boundingBox()).width <= 800);
+        }
+      }
+      await page.evaluate(() => localStorage.removeItem('bearcalc.v1'));
+      await page.reload();
+      assert.equal(await page.locator('html').getAttribute('data-theme'), null);
+      assert.equal(
+        await page.locator('html').evaluate((html) => getComputedStyle(html).colorScheme),
+        'light dark',
+      );
+    });
+
+    test('release links and version anchors work in direct file previews', async ({ page }) => {
+      const calculatorUrl = pathToFileURL(path.resolve(__dirname, '../index.html')).href;
+      if (engine === 'chromium') {
+        await page.goto(calculatorUrl);
+        await page.locator('#appVersion').click();
+      } else {
+        // WebKit blocks the calculator's existing SVG masks under file://.
+        // Verify the standalone changelog offline; HTTP navigation is covered above.
+        await page.goto(
+          new URL(`changelog/index.html#${versionAnchor(releases[0].version)}`, calculatorUrl).href,
+        );
+      }
+      assert.ok(page.url().endsWith(`/changelog/index.html#${versionAnchor(releases[0].version)}`));
+      const lastId = versionAnchor(releases.at(-1).version);
+      await page.goto(`${page.url().split('#')[0]}#${lastId}`);
+      await page.reload();
+      await fitsViewport(page, `#${lastId}`);
+      const back = page.getByRole('link', { name: '← Back to calculator' });
+      assert.equal(await back.evaluate((link) => link.href), calculatorUrl);
+      if (engine === 'chromium') {
+        await back.click();
+        assert.equal(page.url(), calculatorUrl);
+      }
+    });
+
     test('hero cards and priority chips follow metadata and accessible relationships', async ({
       page,
       url,

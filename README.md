@@ -81,6 +81,8 @@ Use **Copy formation** to copy the calculated marches as readable text. The resu
 
 ## Running locally
 
+The footer displays the app version and deployed commit hash. Select the version to open the dedicated **Release history** page at `changelog/`, linked directly to that version. Release history is maintained in `release-history.js`; see [Publishing an update](docs/maintaining.md#publishing-an-update) for version updates. GitHub Pages supplies the commit hash automatically; opening the source locally shows **Local preview**.
+
 It's a static site with no build step or external dependencies. Keep the repository files together, then open `index.html` in any browser, online or off.
 
 `app.js` initializes the page and schedules updates. Browser controllers own their individual controls; the calculation and settings modules also run directly in Node. See [the maintenance guide](docs/maintaining.md) for file responsibilities and how to add a field or hero.

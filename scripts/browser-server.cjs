@@ -15,8 +15,14 @@ const types = {
 
 module.exports = () =>
   http.createServer((request, response) => {
-    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    const filename = path.resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
+    const requestUrl = new URL(request.url, 'http://localhost');
+    const pathname = decodeURIComponent(requestUrl.pathname);
+    if (pathname === '/changelog') {
+      response.writeHead(301, { Location: `/changelog/${requestUrl.search}` }).end();
+      return;
+    }
+    const pagePath = pathname.endsWith('/') ? `${pathname}index.html` : pathname;
+    const filename = path.resolve(root, `.${pagePath}`);
     if (!filename.startsWith(root + path.sep)) {
       response.writeHead(403).end();
       return;

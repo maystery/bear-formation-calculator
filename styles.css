@@ -3896,6 +3896,101 @@ details.help ol {
   color: #e5484d;
   font-size: 13px;
 }
+.site-footer__version {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.site-footer__version-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.site-footer__version-link:hover,
+.changelog-back:hover {
+  color: var(--text-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.site-footer__version-link:focus-visible,
+.changelog-back:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Dedicated release history page. */
+.changelog-page {
+  max-width: 800px;
+}
+.changelog-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-decoration: none;
+}
+.changelog-entries {
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 15px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.release-entry {
+  scroll-margin-top: 24px;
+}
+.release-entry + .release-entry {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.release-entry h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+.release-entry__current {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+.release-entry__title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.release-entry p {
+  margin: 8px 0;
+}
+.release-entry .release-entry__meta {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.release-entry ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+.release-entry li + li {
+  margin-top: 6px;
+}
 
 /* collapsible sections: the sechead itself is the summary */
 .fold > summary {

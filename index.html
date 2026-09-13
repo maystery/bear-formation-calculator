@@ -23,6 +23,8 @@
     <script src="settings-controller.js" defer></script>
     <script src="formation-view.js" defer></script>
     <script src="app.js" defer></script>
+    <script src="release-history.js" defer></script>
+    <script src="release-notes.js" defer></script>
   </head>
   <body>
     <div class="wrap">
@@ -698,7 +700,12 @@
       </details>
 
       <footer class="site-footer">
-        Made with <span class="site-footer__heart">♥</span> by MΛYSTΞR
+        <div>Made with <span class="site-footer__heart">♥</span> by MΛYSTΞR</div>
+        <div class="site-footer__version" role="group" aria-label="Application version and commit">
+          <a id="appVersion" class="site-footer__version-link" href="changelog/"></a>
+          <span aria-hidden="true">·</span>
+          <span id="appCommit">Local preview</span>
+        </div>
       </footer>
     </div>
 
