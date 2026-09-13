@@ -18,7 +18,7 @@
       if (!response.ok) return;
       const commit = (await response.text()).trim();
       if (/^[a-f0-9]{40}$/i.test(commit)) {
-        label.textContent = `Commit ${commit.slice(0, 7)}`;
+        label.textContent = commit.slice(0, 7);
         label.title = commit;
       } else if (commit.includes('{{ site.github.build_revision }}')) {
         label.textContent = 'Local preview';

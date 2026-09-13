@@ -7,14 +7,16 @@
      no data-theme = follow the OS, data-theme=light/dark = forced */
 :root {
   color-scheme: light dark;
-  --surface-0: light-dark(#f5f4ef, #131316);
-  --surface-1: light-dark(#f1efe8, #1e1e22);
+  /* Page, muted surface, primary surface, and input; dark elevations stay unchanged. */
+  --surface-0: light-dark(#f1f4f8, #131316);
+  --surface-1: light-dark(#f7f9fc, #1e1e22);
   --surface-2: light-dark(#ffffff, #26262b);
-  --text-primary: light-dark(#191917, #ececef);
-  --text-secondary: light-dark(#5f5e5a, #a9a8a2);
-  --text-muted: light-dark(#8b8a83, #7d7c76);
-  --border: light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.14));
-  --border-strong: light-dark(rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.26));
+  --surface-input: light-dark(var(--surface-2), var(--surface-0));
+  --text-primary: light-dark(#243247, #ececef);
+  --text-secondary: light-dark(#536174, #a9a8a2);
+  --text-muted: light-dark(#64748b, #7d7c76);
+  --border: light-dark(#cbd3df, rgba(255, 255, 255, 0.14));
+  --border-strong: light-dark(#a4b1c3, rgba(255, 255, 255, 0.26));
   --bg-accent: light-dark(#e6f1fb, #0c447c);
   --text-accent: light-dark(#185fa5, #b5d4f4);
   --bg-warning: light-dark(#faeeda, #633806);
@@ -46,7 +48,7 @@
 body {
   margin: 0;
   padding: 2rem 1.25rem;
-  background: light-dark(#f1f4f8, var(--surface-0));
+  background: var(--surface-0);
   color: var(--text-primary);
   font:
     16px/1.7 system-ui,
@@ -131,12 +133,6 @@ h1 {
 /* Formation editor. */
 .formation-section {
   --section-accent: var(--text-accent);
-  --surface-0: light-dark(#f1f4f8, #131316);
-  --surface-1: light-dark(#ffffff, #1e1e22);
-  --surface-2: light-dark(#ffffff, #26262b);
-  --border: light-dark(#cbd3df, rgba(255, 255, 255, 0.14));
-  --border-strong: light-dark(#a4b1c3, rgba(255, 255, 255, 0.26));
-  --text-secondary: light-dark(#536174, #a9a8a2);
   --text-accent: light-dark(#567ca3, #b5d4f4);
 }
 .formation-header {
@@ -214,9 +210,10 @@ h1 {
 .formation-editor {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  border: 1px solid light-dark(#c3cedd, color-mix(in srgb, var(--border-strong) 70%, var(--border)));
+  border: 1px solid
+    light-dark(var(--border), color-mix(in srgb, var(--border-strong) 70%, var(--border)));
   border-radius: 12px;
-  background: var(--surface-1);
+  background: light-dark(var(--surface-2), var(--surface-1));
   overflow: hidden;
   box-shadow: 0 3px 12px light-dark(rgba(38, 57, 82, 0.075), transparent);
 }
@@ -225,7 +222,7 @@ h1 {
   padding: 16px 18px;
 }
 .formation-left {
-  border-right: 1px solid light-dark(#bec9d8, var(--border));
+  border-right: 1px solid var(--border);
 }
 .formation-subsection + .formation-subsection {
   margin-top: 20px;
@@ -351,7 +348,7 @@ h1 {
   font-size: 14px;
   line-height: normal;
   min-width: 0;
-  background: light-dark(#fff, var(--surface-0));
+  background: var(--surface-input);
 }
 .formation-units {
   display: flex;
@@ -393,7 +390,10 @@ h1 {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 5px;
-  background: light-dark(#d8dee7, color-mix(in srgb, var(--text-primary) 7%, var(--surface-2)));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-primary) 7%, var(--surface-2))
+  );
   color: var(--text-primary);
   font-size: 18px;
   line-height: 1;
@@ -430,7 +430,10 @@ h1 {
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   border-radius: 5px;
-  background: light-dark(#ffffff, color-mix(in srgb, var(--text-accent) 8%, var(--surface-0)));
+  background: light-dark(
+    var(--surface-input),
+    color-mix(in srgb, var(--text-accent) 8%, var(--surface-0))
+  );
   text-align: center;
   font-size: 16px;
   font-weight: 600;
@@ -542,7 +545,7 @@ h1 {
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: light-dark(#f3f5f8, var(--surface-2));
+  background: light-dark(var(--surface-1), var(--surface-2));
   cursor: pointer;
 }
 .strategy-option:hover {
@@ -606,7 +609,7 @@ h1 {
   grid-column: 1/-1;
   margin: 0 18px 14px;
   padding: 8px 10px;
-  background: light-dark(color-mix(in srgb, #eef4fa 85%, white), var(--surface-1));
+  background: var(--surface-1);
   border-color: color-mix(in srgb, var(--border) 50%, transparent);
   border-left-color: light-dark(
     color-mix(in srgb, var(--text-accent) 12%, var(--border)),
@@ -771,13 +774,9 @@ h1 {
 /* Formation results: metrics and table overrides. */
 .result-section {
   padding: 12px 14px 14px;
-  border: 1px solid light-dark(#c3cedd, var(--border-strong));
+  border: 1px solid light-dark(var(--border), var(--border-strong));
   border-radius: 12px;
-  background: light-dark(#fff, #19191e);
-  --surface-0: light-dark(#f3f6fa, #131316);
-  --surface-1: light-dark(#f8fafc, #1e1e22);
-  --surface-2: light-dark(#fff, #26262b);
-  --border: light-dark(#d3dce7, rgba(255, 255, 255, 0.14));
+  background: light-dark(var(--surface-2), #19191e);
 }
 .result-section > .sechead {
   margin-bottom: 16px;
@@ -790,12 +789,15 @@ h1 {
 .result-section .metric {
   border-color: color-mix(in srgb, var(--text-accent) 18%, var(--border));
   min-height: 118px;
-  background: color-mix(in srgb, var(--text-accent) 2%, var(--surface-1));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-accent) 2%, var(--surface-1))
+  );
 }
 .result-section .tile.metric-total {
   border-color: color-mix(in srgb, var(--text-accent) 38%, var(--border));
   background: light-dark(
-    color-mix(in srgb, var(--text-accent) 3%, var(--surface-1)),
+    var(--surface-1),
     color-mix(in srgb, var(--text-accent) 7%, var(--surface-1))
   );
   box-shadow: inset 3px 0 color-mix(in srgb, var(--text-accent) 48%, transparent);
@@ -810,7 +812,7 @@ h1 {
 .result-section .row.g4 > .metric:nth-child(2) {
   border-color: color-mix(in srgb, var(--text-accent) 30%, var(--border));
   background: light-dark(
-    color-mix(in srgb, var(--text-accent) 2%, var(--surface-1)),
+    var(--surface-1),
     color-mix(in srgb, var(--text-accent) 5%, var(--surface-1))
   );
   box-shadow: inset 3px 0 color-mix(in srgb, var(--text-accent) 42%, transparent);
@@ -918,10 +920,13 @@ h1 {
   height: 45px;
 }
 .result-section .resulttable tbody tr.no-hero-row {
-  background: color-mix(in srgb, var(--text-secondary) 7.5%, var(--surface-1));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-secondary) 7.5%, var(--surface-1))
+  );
 }
 .result-section .resulttable thead th {
-  background: light-dark(#edf1f6, var(--surface-0));
+  background: light-dark(var(--surface-1), var(--surface-0));
 }
 .result-section .resulttable tbody td:nth-child(6) {
   color: var(--text-warning);
@@ -936,7 +941,10 @@ h1 {
   font-weight: 750;
 }
 .result-section .resulttable tfoot {
-  background: color-mix(in srgb, var(--text-accent) 6%, var(--surface-1));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-accent) 6%, var(--surface-1))
+  );
 }
 .result-section .capacity-use .bar {
   width: 100%;
@@ -992,7 +1000,7 @@ h1 {
   padding: 9px 11px;
   margin-top: 12px;
   border-radius: 8px;
-  background: light-dark(#f0f5fa, #20242b);
+  background: light-dark(var(--surface-1), #20242b);
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.5;
@@ -1116,7 +1124,7 @@ h1 {
 .control-panel input[type='text'],
 .control-panel input[type='number'],
 .control-panel select {
-  background: var(--surface-0);
+  background: var(--surface-input);
 }
 .tile {
   background: var(--surface-1);
@@ -1156,14 +1164,6 @@ h1 {
   margin: auto 0;
   padding-top: 10px;
 }
-#foldHeroes {
-  --surface-1: light-dark(#f7f9fc, #1e1e22);
-  --surface-2: light-dark(#fff, #26262b);
-  --text-primary: light-dark(#243247, #ececef);
-  --text-secondary: light-dark(#58697e, #a9a8a2);
-  --text-muted: light-dark(#748297, #7d7c76);
-  --border: light-dark(#d5dee9, rgba(255, 255, 255, 0.14));
-}
 .hero-priority {
   display: flex;
   align-items: flex-start;
@@ -1201,9 +1201,13 @@ h1 {
   gap: 6px;
   flex: none;
   padding: 4px 6px;
-  border: 1px solid light-dark(#cbd5e1, color-mix(in srgb, var(--text-pro) 25%, var(--border)));
+  border: 1px solid
+    light-dark(var(--border), color-mix(in srgb, var(--text-pro) 25%, var(--border)));
   border-radius: 999px;
-  background: light-dark(#fff, color-mix(in srgb, var(--text-pro) 7%, var(--surface-2)));
+  background: light-dark(
+    var(--surface-2),
+    color-mix(in srgb, var(--text-pro) 7%, var(--surface-2))
+  );
   color: var(--text-secondary);
   white-space: nowrap;
   transition:
@@ -1212,7 +1216,10 @@ h1 {
     transform 0.16s ease;
 }
 .hero-priority-chip:hover {
-  background: light-dark(#f8faff, color-mix(in srgb, var(--text-pro) 14%, var(--surface-2)));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-pro) 14%, var(--surface-2))
+  );
   border-color: light-dark(#a5a6e8, color-mix(in srgb, var(--text-pro) 44%, var(--border)));
   transform: translateY(-1px);
 }
@@ -1223,7 +1230,10 @@ h1 {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: light-dark(#edf1f7, color-mix(in srgb, var(--text-pro) 16%, var(--surface-1)));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-pro) 16%, var(--surface-1))
+  );
   color: var(--text-secondary);
   font-size: 11px;
   font-weight: 600;
@@ -1245,7 +1255,10 @@ h1 {
   opacity: 0.56;
 }
 .hero-priority-chip.is-disabled span {
-  color: light-dark(#788494, color-mix(in srgb, var(--text-secondary) 92%, var(--surface-1)));
+  color: light-dark(
+    var(--text-muted),
+    color-mix(in srgb, var(--text-secondary) 92%, var(--surface-1))
+  );
 }
 :root[data-theme='light'] .hero-priority-chip.is-disabled .hero-priority-avatar {
   opacity: 0.64;
@@ -1257,7 +1270,7 @@ h1 {
 }
 .hero-priority-chip.is-disabled {
   border-color: var(--border);
-  background: light-dark(#f1f3f5, var(--surface-1));
+  background: var(--surface-1);
 }
 @media (max-width: 600px) {
   .hero-priority {
@@ -1473,9 +1486,9 @@ h1 {
 /* Capacity editor, overview and buffs. */
 #foldCap {
   padding: 0 12px 10px;
-  border: 1px solid light-dark(#cbd4e1, var(--border));
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: light-dark(#fff, var(--surface-1));
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 #foldCap > .sechead {
   margin-bottom: 0;
@@ -1495,7 +1508,7 @@ h1 {
   padding: 0 18px;
 }
 .capacity-metric + .capacity-metric {
-  border-left: 1px solid light-dark(#d5dce5, var(--border));
+  border-left: 1px solid var(--border);
 }
 .capacity-icon-placeholder {
   display: grid;
@@ -1503,8 +1516,8 @@ h1 {
   width: 50px;
   height: 50px;
   border-radius: 10px;
-  background: light-dark(#eef3f8, var(--surface-2));
-  color: light-dark(#71839a, #95a5b9);
+  background: light-dark(var(--surface-1), var(--surface-2));
+  color: light-dark(var(--text-muted), #95a5b9);
   font-size: 28px;
   line-height: 1;
 }
@@ -1551,7 +1564,7 @@ h1 {
   margin: 5px 0 0;
   font-size: 11px;
   line-height: 1.45;
-  color: light-dark(#596879, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .capacity-metric-value {
   max-width: 100%;
@@ -1580,7 +1593,7 @@ h1 {
   cursor: pointer;
   font-size: 11px;
   font-weight: 550;
-  color: light-dark(#596879, var(--text-secondary));
+  color: var(--text-secondary);
   border: 1px solid transparent;
   border-radius: 5px;
   padding: 11px 9px;
@@ -1603,7 +1616,7 @@ h1 {
 .capacity-edit > summary:hover {
   color: var(--text-primary);
   border-color: var(--border);
-  background: light-dark(#eef2f7, var(--surface-2));
+  background: light-dark(var(--surface-1), var(--surface-2));
 }
 .capacity-edit > summary:focus-visible {
   outline: 2px solid var(--text-accent);
@@ -1656,7 +1669,7 @@ h1 {
   }
   .capacity-metric + .capacity-metric {
     border-left: 0;
-    border-top: 1px solid light-dark(#cdd5e0, var(--border));
+    border-top: 1px solid var(--border);
   }
   .capacity-edit-fields {
     grid-template-columns: minmax(0, 1fr);
@@ -1667,9 +1680,10 @@ h1 {
   margin-top: 24px;
   margin-bottom: 16px;
   padding: 0 10px 12px;
-  border: 1px solid light-dark(#d8dee7, color-mix(in srgb, var(--text-pro) 17%, var(--border)));
+  border: 1px solid
+    light-dark(var(--border), color-mix(in srgb, var(--text-pro) 17%, var(--border)));
   border-radius: 12px;
-  background: light-dark(#f5f6f8, color-mix(in srgb, var(--text-pro) 2%, transparent));
+  background: light-dark(var(--surface-1), color-mix(in srgb, var(--text-pro) 2%, transparent));
 }
 .capacity-buffs-grid {
   display: grid;
@@ -1679,7 +1693,6 @@ h1 {
   align-items: stretch;
 }
 .capacity-buff-card {
-  --surface-1: light-dark(#f5f7fa, #1e1e22);
   position: relative;
   isolation: isolate;
   display: flex;
@@ -1691,7 +1704,7 @@ h1 {
   border-radius: 12px;
   background: linear-gradient(
     145deg,
-    light-dark(#f2f4f7, color-mix(in srgb, var(--bg-warning) 34%, var(--surface-1))),
+    light-dark(var(--surface-1), color-mix(in srgb, var(--bg-warning) 34%, var(--surface-1))),
     var(--surface-1) 62%
   );
   color: var(--text-primary);
@@ -1868,7 +1881,7 @@ h1 {
   padding: 4px;
   border: 1px solid color-mix(in srgb, var(--buff-picker-accent) 34%, var(--border));
   border-radius: 9px;
-  background: light-dark(#fff, #17171b);
+  background: light-dark(var(--surface-2), #17171b);
   box-shadow:
     0 10px 22px rgba(0, 0, 0, 0.42),
     0 0 10px color-mix(in srgb, var(--buff-picker-accent) 7%, transparent);
@@ -1987,9 +2000,9 @@ h1 {
   min-width: 0;
   min-height: 312px;
   padding: 15px 14px 14px;
-  border: 1px solid light-dark(#afbdd0, var(--border));
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: light-dark(#fff, var(--surface-1));
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .capacity-summary h3 {
   margin: 0 0 9px;
@@ -2213,7 +2226,7 @@ select {
   padding: 0 11px;
   font: inherit;
   font-size: 15px;
-  background: var(--surface-2);
+  background: light-dark(var(--surface-input), var(--surface-2));
   color: var(--text-primary);
   border: 0.5px solid var(--border);
   border-radius: var(--radius);
@@ -2422,7 +2435,7 @@ button.copied {
 /* Shared result tables. */
 .resulttable,
 .checktable {
-  background: color-mix(in srgb, var(--surface-1) 55%, transparent);
+  background: light-dark(var(--surface-2), color-mix(in srgb, var(--surface-1) 55%, transparent));
 }
 .resulttable,
 .checktable {
@@ -2453,7 +2466,7 @@ button.copied {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--surface-0);
+  background: light-dark(var(--surface-1), var(--surface-0));
   box-shadow: inset 0 -0.5px 0 var(--border);
 }
 .resulttable th:nth-child(n + 3),
@@ -2560,7 +2573,10 @@ tr.line {
   background: var(--surface-1);
 }
 tr.sumline {
-  background: color-mix(in srgb, var(--text-accent) 7%, var(--surface-1));
+  background: light-dark(
+    var(--surface-1),
+    color-mix(in srgb, var(--text-accent) 7%, var(--surface-1))
+  );
   font-weight: 600;
 }
 tr.sumline > * {
@@ -3433,36 +3449,36 @@ tr.sumline td:nth-child(6) {
 }
 /* Neutral light-theme chrome; active illustrated cards retain their palette. */
 .herocard:not(.on) {
-  --hero-surface: light-dark(#dce3ec, var(--disabled-dark-surface));
-  --hero-surface-deep: light-dark(#e9edf3, var(--disabled-dark-deep));
-  --hero-border-color: light-dark(#d5dce5, rgba(180, 180, 190, 0.24));
+  --hero-surface: light-dark(var(--surface-1), var(--disabled-dark-surface));
+  --hero-surface-deep: light-dark(var(--surface-0), var(--disabled-dark-deep));
+  --hero-border-color: light-dark(var(--border), rgba(180, 180, 190, 0.24));
   --disabled-dark-surface: #211848;
   --disabled-dark-deep: #100d28;
-  --hero-accent: light-dark(#77879b, #c9b9ff);
-  --hero-accent-strong: light-dark(#42546a, #f0ebff);
+  --hero-accent: light-dark(var(--text-muted), #c9b9ff);
+  --hero-accent-strong: light-dark(var(--text-secondary), #f0ebff);
 }
 .hero-card--gold:not(.on) {
   --disabled-dark-surface: #603507;
   --disabled-dark-deep: #211202;
-  --hero-accent: light-dark(#77879b, #e6ad3b);
-  --hero-accent-strong: light-dark(#42546a, #ffe3a0);
+  --hero-accent: light-dark(var(--text-muted), #e6ad3b);
+  --hero-accent-strong: light-dark(var(--text-secondary), #ffe3a0);
 }
 .herocard:not(.on) .heroname {
-  color: light-dark(#1f2b3d, color-mix(in srgb, currentColor 82%, white));
+  color: light-dark(var(--text-primary), color-mix(in srgb, currentColor 82%, white));
   text-shadow: 0 1px 8px light-dark(transparent, rgba(0, 0, 0, 0.35));
 }
 .herocard:not(.on) .hero-card__skill-name,
 .herocard:not(.on) .hero-skill-recommendation {
-  color: light-dark(#334254, color-mix(in srgb, currentColor 82%, white));
+  color: light-dark(var(--text-secondary), color-mix(in srgb, currentColor 82%, white));
 }
 .herocard:not(.on) .hero-stat__label {
-  color: light-dark(#42546a, color-mix(in srgb, var(--hero-stat-accent) 78%, white));
+  color: light-dark(var(--text-secondary), color-mix(in srgb, var(--hero-stat-accent) 78%, white));
 }
 .stat-legend {
-  background: light-dark(#fff, var(--surface-1));
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .stat-legend .hero-stat {
-  background: light-dark(#fff, transparent);
+  background: light-dark(var(--surface-2), transparent);
 }
 @keyframes hero-border-sweep {
   from {
@@ -3618,17 +3634,21 @@ tr.sumline td:nth-child(6) {
   color: var(--text-danger);
 }
 /* March diagnostics share troop identity colors, not validation colors. */
+:root[data-theme='dark'] .check-section {
+  --text-secondary: #a9a8b2;
+  --text-muted: #9696a2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .check-section {
+    --text-secondary: #a9a8b2;
+    --text-muted: #9696a2;
+  }
+}
 .check-section {
-  --surface-0: light-dark(#f3f6fa, #131316);
-  --surface-1: light-dark(#fff, #1e1e22);
-  --surface-2: light-dark(#f7f9fc, #26262b);
-  --border: light-dark(#d5dee9, rgba(255, 255, 255, 0.14));
-  --text-secondary: light-dark(#536174, #a9a8b2);
-  --text-muted: light-dark(#64748b, #9696a2);
   padding: 0 14px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface-1);
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .check-sub {
   font-size: 13px;
@@ -3636,7 +3656,7 @@ tr.sumline td:nth-child(6) {
 }
 .check-panel {
   padding: 10px;
-  background: var(--surface-2);
+  background: light-dark(var(--surface-1), var(--surface-2));
 }
 .check-panel .row {
   display: grid;
@@ -3647,7 +3667,7 @@ tr.sumline td:nth-child(6) {
   min-width: 0;
   min-height: 96px;
   padding: 12px;
-  background: var(--surface-1);
+  background: light-dark(var(--surface-2), var(--surface-1));
   border-color: var(--border);
 }
 .check-troop--infantry {
@@ -3677,7 +3697,7 @@ tr.sumline td:nth-child(6) {
   font-size: 13px;
 }
 .check-panel input {
-  background: var(--surface-1);
+  background: light-dark(var(--surface-input), var(--surface-1));
   color: var(--text-primary);
   height: 38px;
   text-align: right;
@@ -3705,14 +3725,14 @@ tr.sumline td:nth-child(6) {
 }
 .check-section .checktable {
   min-width: 740px;
-  background: var(--surface-1);
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .check-section .checktable thead th {
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: var(--surface-2);
+  background: light-dark(var(--surface-1), var(--surface-2));
 }
 .check-section .checktable tbody th,
 .check-section .checktable tbody td {
@@ -3730,7 +3750,7 @@ tr.sumline td:nth-child(6) {
   margin: 6px 0 0 auto;
   border-radius: 4px;
   overflow: hidden;
-  background: light-dark(#e1e7ef, var(--surface-2));
+  background: light-dark(var(--surface-1), var(--surface-2));
 }
 .check-composition-bar > span {
   display: block;
@@ -3767,10 +3787,16 @@ tr.sumline td:nth-child(6) {
   font-size: 12px;
 }
 .check-section .verdict.ok {
-  background: color-mix(in srgb, var(--text-success) 5%, var(--surface-1));
+  background: light-dark(
+    color-mix(in srgb, var(--text-success) 5%, var(--surface-2)),
+    color-mix(in srgb, var(--text-success) 5%, var(--surface-1))
+  );
 }
 .check-section .verdict.bad {
-  background: color-mix(in srgb, var(--text-danger) 5%, var(--surface-1));
+  background: light-dark(
+    color-mix(in srgb, var(--text-danger) 5%, var(--surface-2)),
+    color-mix(in srgb, var(--text-danger) 5%, var(--surface-1))
+  );
 }
 .check-total {
   flex: none;
