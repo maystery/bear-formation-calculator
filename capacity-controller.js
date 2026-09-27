@@ -6,15 +6,13 @@ window.BearCapacityController = Object.freeze({
    * @returns {import('./types').CapacityController} */
   create({ onChange }) {
     const $ = (id) => document.getElementById(id);
-    const { capacityBuffSummary, CAPACITY_SKILLS } = BearCalcCore;
+    const { capacityBuffSummary, CAPACITY_SKILLS, formatAmount, formatFull } = BearCalcCore;
     const VALORA_BONUS_PER_LEVEL = CAPACITY_SKILLS.valora.bonusPerLevel;
     const BISON_BONUS_PER_LEVEL = CAPACITY_SKILLS.bison.bonusPerLevel;
     let isBisonBuffEnabled = false;
-    const fixedCapacity = (value) =>
-      value >= 1000 ? `${(value / 1000).toFixed(2)}k` : Math.round(value).toLocaleString('en-US');
 
     const capacitySkillLevel = (id) => BearSettings.parseField(id, $(id).value).value;
-    const signedCapacity = (value) => `+${fixedCapacity(value)}`;
+    const signedCapacity = (value) => `+${formatAmount(value)}`;
     const capacityPickerMenu = (picker) =>
       $(picker.querySelector('.capacity-buff-level-trigger').getAttribute('aria-controls'));
 
@@ -103,11 +101,8 @@ window.BearCapacityController = Object.freeze({
       toggle.setAttribute('aria-checked', String(isBisonBuffEnabled));
       toggle.closest('.bison-buff-card').classList.toggle('is-active', isBisonBuffEnabled);
       $('bisonBuffStatus').textContent = isBisonBuffEnabled ? 'Active' : 'Inactive';
-      $('valoraBonusCard').textContent =
-        valoraBonus % 1000 === 0
-          ? `+${valoraBonus / 1000}k`
-          : `+${(valoraBonus / 1000).toFixed(1)}k`;
-      $('bisonBonusCard').textContent = `+${bisonRecordedBonus.toLocaleString('en-US')}`;
+      $('valoraBonusCard').textContent = signedCapacity(valoraBonus);
+      $('bisonBonusCard').textContent = `+${formatFull(bisonRecordedBonus)}`;
       $('capacityValoraLevel').textContent = `(Skill Lv. ${valoraSkillLevel})`;
       $('capacityValoraValue').textContent = signedCapacity(valoraBonus);
       $('capacityBisonLevel').textContent = `Skill Lv. ${bisonSkillLevel}`;
@@ -115,12 +110,12 @@ window.BearCapacityController = Object.freeze({
       $('capacityBisonRow').classList.toggle('is-inactive', !isBisonBuffEnabled);
       $('capacityBisonState').textContent = isBisonBuffEnabled ? 'Applied' : 'Recorded, inactive';
       $('capacityBaseValue').textContent =
-        baseCapacity === null ? '–' : fixedCapacity(summary.baseCapacity);
+        baseCapacity === null ? '–' : formatAmount(summary.baseCapacity);
       $('capacityBuffTotal').textContent =
-        baseCapacity === null ? '–' : fixedCapacity(summary.total);
+        baseCapacity === null ? '–' : formatAmount(summary.total);
       $('capacityBuffInfo').textContent = isBisonBuffEnabled
-        ? `Fearless Roar increases Squad Capacity by ${bisonRecordedBonus.toLocaleString('en-US')} for 2 hours.`
-        : `Recorded bonus: +${bisonRecordedBonus.toLocaleString('en-US')}. Currently inactive.`;
+        ? `Fearless Roar increases Squad Capacity by ${formatFull(bisonRecordedBonus)} for 2 hours.`
+        : `Recorded bonus: +${formatFull(bisonRecordedBonus)}. Currently inactive.`;
       renderedCapacityBuffs = { state, summary };
       return summary;
     }
@@ -197,6 +192,9 @@ window.BearCapacityController = Object.freeze({
     }
     document.addEventListener('pointerdown', dismissCapacityPickers);
     document.addEventListener('click', dismissCapacityPickers);
+    $('foldBuffs').addEventListener('toggle', () => {
+      if (!$('foldBuffs').open) closeCapacitySkillPickers();
+    });
     window.addEventListener('resize', () => closeCapacitySkillPickers());
     window.addEventListener('scroll', () => closeCapacitySkillPickers(), true);
     $('bisonBuff').addEventListener('click', () => {

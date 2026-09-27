@@ -5,6 +5,8 @@ const assert = require('node:assert/strict');
 const {
   parseAmount,
   parseRatio,
+  formatAmount,
+  trimDecimals,
   allocate,
   allocateSequentially,
   splitByRatio,
@@ -33,6 +35,20 @@ test('parseRatio accepts finite non-negative numbers only', () => {
   for (const value of ['', '-1', 'nope', 'Infinity']) {
     assert.equal(parseRatio(value).valid, false, value);
   }
+});
+
+test('formatAmount uses shorthand or full numbers and rounds before choosing a suffix', () => {
+  assert.equal(formatAmount(999), '999');
+  assert.equal(formatAmount(999.5), '1k');
+  assert.equal(formatAmount(169310), '169.31k');
+  assert.equal(formatAmount(98900), '98.9k');
+  assert.equal(formatAmount(999994), '999.99k');
+  assert.equal(formatAmount(999995), '1m');
+  assert.equal(formatAmount(1234567), '1.23m');
+  assert.equal(formatAmount(1234567, 'full'), '1,234,567');
+  assert.equal(trimDecimals(10), '10');
+  assert.equal(trimDecimals(100), '100');
+  assert.equal(trimDecimals(10.5), '10.5');
 });
 
 test('allocate water-fills marches without exceeding caps', () => {

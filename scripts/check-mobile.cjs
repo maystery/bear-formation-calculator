@@ -260,6 +260,40 @@ for (const engine of ['chromium', 'webkit'].filter(
         await nextPaint(page);
         assert.equal(await page.locator('#tol').getAttribute('aria-invalid'), null);
       });
+      test('all stages collapse and reopen by touch with consistent headers', async ({
+        page,
+        url,
+      }) => {
+        await page.goto(url);
+        for (const [id, content] of [
+          ['foldFormation', '#foldFormation > .accordion-body'],
+          ['foldCap', '#foldCap > .accordion-body'],
+          ['foldBuffs', '#foldBuffs > .accordion-body'],
+          ['foldHeroes', '#foldHeroes > .accordion-body'],
+          ['foldResult', '#foldResult > .accordion-body'],
+          ['foldCheck', '#foldCheck > .accordion-body'],
+        ]) {
+          const summary = page.locator(`#${id} > summary`);
+          const headerHeight = id === 'foldHeroes' ? 104 : 88;
+          assert.ok((await summary.boundingBox()).height >= 44);
+          await tap(page, `#${id} > summary`);
+          assert.equal(await page.locator(content).isVisible(), false);
+          assert.equal(await page.locator(`#${id} .foldsum`).isVisible(), true);
+          assert.equal((await summary.boundingBox()).height, headerHeight);
+          await fitsViewport(page, `#${id} > summary`);
+          await tap(page, `#${id} > summary`);
+          assert.equal(await page.locator(content).isVisible(), true);
+          // Open headers keep the collapsed height and centre the title in it.
+          const open = await summary.boundingBox();
+          const title = await page.locator(`#${id} .sectitle`).boundingBox();
+          assert.equal(open.height, headerHeight);
+          assert.ok(Math.abs(title.y + title.height / 2 - (open.y + open.height / 2)) <= 2);
+        }
+        assert.equal(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          true,
+        );
+      });
       test('copy, persistence, shared setup and reset', async ({ page, url }) => {
         await page.goto(url + '?setup=1&sa=700k&n=7&bisonSkill=4');
         await page.evaluate(() => {
@@ -278,9 +312,10 @@ for (const engine of ['chromium', 'webkit'].filter(
         await page.reload();
         assert.equal(await page.locator('#sa').inputValue(), '700k');
         assert.equal(await page.locator('#bisonSkill').inputValue(), '4');
-        await tap(page, '#foldHeroes > summary');
+        // The header's season button has its own action; tap the heading to fold.
+        await tap(page, '#foldHeroes > summary .sectitle');
         assert.equal(await page.locator('#heroGrid').isVisible(), false);
-        await tap(page, '#foldHeroes > summary');
+        await tap(page, '#foldHeroes > summary .sectitle');
         assert.equal(await page.locator('#heroGrid').isVisible(), true);
         await page.goto(sharedUrl);
         assert.equal(await page.locator('#sharedNotice').isVisible(), true);

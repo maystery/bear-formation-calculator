@@ -66,8 +66,6 @@ body,
 button,
 input,
 select,
-.segmented,
-.segmented label,
 .resulttable th,
 .resulttable td,
 .checktable th,
@@ -107,9 +105,6 @@ details.help code {
 .primary-value {
   color: var(--text-primary);
 }
-.muted {
-  color: var(--text-muted);
-}
 h1 {
   font-size: 22px;
   font-weight: 500;
@@ -136,23 +131,15 @@ h1 {
   --text-accent: light-dark(#567ca3, #b5d4f4);
 }
 .formation-header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  margin: 4px 0 12px;
-  padding: 3px 0 12px;
+  margin: 0 18px 12px;
+  padding: 0 0 12px;
+  min-height: 44px;
   border-bottom: 1px solid var(--border);
-}
-.formation-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-width: 0;
-}
-.formation-heading .sectitle {
-  font-size: 15px;
-  letter-spacing: 0.09em;
 }
 .formation-helper {
   margin: 2px 0 0;
@@ -160,29 +147,11 @@ h1 {
   font-size: 12px;
   line-height: 1.45;
 }
-.formation-icon-placeholder {
-  display: block;
-  width: 24px;
-  height: 24px;
-  flex: none;
-  margin-top: 1px;
-  border: 1px solid color-mix(in srgb, var(--text-accent) 55%, var(--border));
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--text-accent) 14%, transparent);
-  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--text-accent) 5%, transparent);
-}
 .formation-header .actions {
   max-width: 58%;
   padding-top: 0;
   flex-shrink: 0;
   gap: 6px;
-}
-.formation-icon-placeholder {
-  display: grid;
-  place-items: center;
-  color: var(--text-accent);
-  font-size: 19px;
-  line-height: 1;
 }
 .formation-header .actions button {
   height: 34px;
@@ -210,12 +179,7 @@ h1 {
 .formation-editor {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  border: 1px solid
-    light-dark(var(--border), color-mix(in srgb, var(--border-strong) 70%, var(--border)));
-  border-radius: 12px;
-  background: light-dark(var(--surface-2), var(--surface-1));
   overflow: hidden;
-  box-shadow: 0 3px 12px light-dark(rgba(38, 57, 82, 0.075), transparent);
 }
 .formation-column {
   min-width: 0;
@@ -635,6 +599,7 @@ h1 {
   .formation-header {
     flex-direction: column;
     gap: 10px;
+    padding-right: 0;
   }
   .formation-header .actions {
     max-width: none;
@@ -732,30 +697,6 @@ h1 {
 #foldHeroes {
   --section-accent: var(--text-pro);
 }
-#foldHeroes > .sechead {
-  margin-bottom: 12px;
-}
-.sechead {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 4px 0 14px;
-  padding: 3px 0 8px 12px;
-  border-bottom: 1px solid var(--border);
-}
-.sechead::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 9px;
-  width: 3px;
-  height: 12px;
-  border-radius: 2px;
-  background: var(--section-accent, var(--text-accent));
-  opacity: 0.9;
-}
 .actions {
   display: flex;
   align-items: center;
@@ -772,20 +713,6 @@ h1 {
   margin: 0;
 }
 /* Formation results: metrics and table overrides. */
-.result-section {
-  padding: 12px 14px 14px;
-  border: 1px solid light-dark(var(--border), var(--border-strong));
-  border-radius: 12px;
-  background: light-dark(var(--surface-2), #19191e);
-}
-.result-section > .sechead {
-  margin-bottom: 16px;
-}
-.result-section > .sechead .sectitle,
-#foldHeroes > .sechead .sectitle {
-  font-size: 14px;
-  letter-spacing: 0.115em;
-}
 .result-section .metric {
   border-color: color-mix(in srgb, var(--text-accent) 18%, var(--border));
   min-height: 118px;
@@ -969,7 +896,7 @@ h1 {
   border-color: color-mix(in srgb, var(--text-warning) 38%, var(--border));
   box-shadow: inset 3px 0 color-mix(in srgb, var(--text-warning) 52%, transparent);
 }
-.result-section .metric.bn-cap :is(.lbl, .val, .limhint, .bottleneck-icon) {
+.result-section .metric.bn-cap :is(.lbl, .val, .limhint) {
   color: var(--text-warning);
 }
 .result-section .leftover-label {
@@ -1030,11 +957,6 @@ h1 {
   }
 }
 /* Shared actions and march controls. */
-.sechead button {
-  height: 34px;
-  padding: 0 12px;
-  font-size: 13px;
-}
 .setup-summary {
   display: inline-flex;
   align-items: center;
@@ -1080,23 +1002,9 @@ h1 {
 .g4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.g2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
 @media (max-width: 660px) {
   .g4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .g2 {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .sechead:has(.actions) {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .sechead .actions {
-    width: 100%;
-    justify-content: flex-start;
   }
   .setup-summary {
     flex: 0 0 100%;
@@ -1134,16 +1042,6 @@ h1 {
   display: flex;
   flex-direction: column;
 }
-.march-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.march-head .lbl {
-  margin-bottom: 0;
-  white-space: nowrap;
-}
 .march-composition {
   display: flex;
   align-items: center;
@@ -1159,10 +1057,6 @@ h1 {
   margin-left: 7px;
   padding-left: 7px;
   border-left: 0.5px solid var(--border);
-}
-.sliderwrap {
-  margin: auto 0;
-  padding-top: 10px;
 }
 .hero-priority {
   display: flex;
@@ -1416,32 +1310,6 @@ h1 {
   gap: 7px;
   min-width: 0;
 }
-.bottleneck-icon {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 17px;
-  height: 17px;
-  flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, currentColor 16%, transparent);
-  color: var(--text-warning);
-  font-size: 11px;
-  font-weight: 750;
-  line-height: 1;
-}
-.metric-bottleneck:is(.bn-troop, .bn-cap, .bn-mixed) .bottleneck-icon {
-  display: inline-flex;
-}
-.metric-bottleneck.bn-troop .bottleneck-icon {
-  color: var(--text-danger);
-}
-.metric-bottleneck.bn-cap .bottleneck-icon {
-  color: var(--text-success);
-}
-.metric-bottleneck.bn-mixed .bottleneck-icon {
-  color: var(--text-warning);
-}
 .limhint {
   font-size: 11px;
   margin-top: 2px;
@@ -1484,15 +1352,6 @@ h1 {
   color: var(--bg-success);
 }
 /* Capacity editor, overview and buffs. */
-#foldCap {
-  padding: 0 12px 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: light-dark(var(--surface-2), var(--surface-1));
-}
-#foldCap > .sechead {
-  margin-bottom: 0;
-}
 .capacity-overview {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1677,13 +1536,6 @@ h1 {
 }
 .capacity-buffs-section {
   --section-accent: var(--text-pro);
-  margin-top: 24px;
-  margin-bottom: 16px;
-  padding: 0 10px 12px;
-  border: 1px solid
-    light-dark(var(--border), color-mix(in srgb, var(--text-pro) 17%, var(--border)));
-  border-radius: 12px;
-  background: light-dark(var(--surface-1), color-mix(in srgb, var(--text-pro) 2%, transparent));
 }
 .capacity-buffs-grid {
   display: grid;
@@ -2377,56 +2229,9 @@ button.copied {
   padding: 0;
   margin-bottom: 5px;
 }
-.strategy-content {
-  display: grid;
-  grid-template-columns: minmax(250px, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-}
-.strategy-content .tilenote {
-  margin-top: 0;
-}
-.segmented {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  padding: 3px;
-  background: var(--surface-2);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-}
-.segmented label {
-  min-width: 0;
-  padding: 5px 7px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.4;
-  text-align: center;
-}
-.segmented label:hover {
-  color: var(--text-primary);
-}
-.segmented label:has(input:checked) {
-  background: var(--surface-0);
-  color: var(--text-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
-  font-weight: 500;
-}
-.segmented label:has(input:focus-visible) {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
 @media (max-width: 660px) {
   .control-panel {
     padding: 10px;
-  }
-  .strategy-content {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .strategy-content .tilenote {
-    margin-top: 6px;
   }
 }
 .tablewrap {
@@ -2724,30 +2529,49 @@ tr.sumline td:nth-child(6) {
 }
 /* Wide hero cards compose portrait, season badge, content and chrome as separate layers. */
 .hero-grid {
+  --hero-grid-gap: 18px;
+  container: hero-grid / inline-size;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  column-gap: 18px;
+  column-gap: var(--hero-grid-gap);
   row-gap: 28px;
-  width: min(1180px, calc(100vw - 64px));
-  margin: 0 0 12px 50%;
+  margin: 0 0 12px;
   overflow: visible;
-  transform: translateX(-50%);
 }
+/* Every card gets the same column width, so a card alone on the last row does not
+   stretch (card height follows width). Columns are added once each can be 290px wide. */
 .hero-card-shell {
+  --hero-columns: 1;
   position: relative;
   container-type: inline-size;
   overflow: visible;
-  flex: 1 1 290px;
+  flex: 0 0 calc((100% - (var(--hero-columns) - 1) * var(--hero-grid-gap)) / var(--hero-columns));
   max-width: 410px;
-  min-width: 280px;
+  min-width: 0;
   padding-top: 12px;
+}
+@container hero-grid (min-width: 598px) {
+  .hero-card-shell {
+    --hero-columns: 2;
+  }
+}
+@container hero-grid (min-width: 906px) {
+  .hero-card-shell {
+    --hero-columns: 3;
+  }
+}
+@container hero-grid (min-width: 1214px) {
+  .hero-card-shell {
+    --hero-columns: 4;
+  }
 }
 .hero-card-shell.is-skill-open,
 .hero-card-shell:has(.hero-skill-details:focus-within) {
   z-index: 30;
 }
 .herocard {
+  --hero-stat-row: 32px;
   --hero-accent: #c9b9ff;
   --hero-accent-strong: #f0ebff;
   --hero-surface: #211848;
@@ -2922,10 +2746,14 @@ tr.sumline td:nth-child(6) {
 .hero-card__art {
   position: absolute;
   z-index: 3;
-  left: -11.9048%;
-  top: -19.2308%;
-  width: 111.9048%;
-  height: 119.2308%;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  /* The artboard is a 420x260 card plus a 50-unit top breakout canvas, scaled by the
+     card's height (preserveAspectRatio slice), so artwork still breaks out of the top when
+     extra skill rows make a card taller. Growth is capped at 1.2x the width fit, so the
+     portrait does not spread under the text on tall, narrow phone cards. */
+  height: min(119.2308%, 1.2 * 73.8095cqw);
   overflow: visible;
   pointer-events: none;
 }
@@ -3042,7 +2870,11 @@ tr.sumline td:nth-child(6) {
 }
 .herocard .heroname {
   display: block;
-  font-size: 20px;
+  max-width: 100%;
+  /* One line keeps card heights equal. The name box is about 48cqw - 26px wide, and the
+     longest name (Wee & Woo) needs about 6.3em, so narrow cards shrink every name alike. */
+  font-size: min(20px, calc(7.6cqw - 4px));
+  white-space: nowrap;
   font-weight: 650;
   line-height: 1.15;
   letter-spacing: -0.015em;
@@ -3054,6 +2886,11 @@ tr.sumline td:nth-child(6) {
   display: block;
   width: 100%;
   margin-top: 2px;
+  /* Reserve the rows this card lacks versus the visible hero with the most skill
+     effects, so all cards share one height. The pill stays pinned to the bottom. */
+  margin-bottom: calc(
+    (var(--hero-grid-skill-rows, 1) - var(--hero-skill-rows, 1)) * (var(--hero-stat-row) + 2px)
+  );
   text-align: left;
 }
 .hero-stat--interactive:hover,
@@ -3100,7 +2937,7 @@ tr.sumline td:nth-child(6) {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 32px;
+  min-height: var(--hero-stat-row, 32px);
   padding: 5px 8px;
   border: 1px solid
     color-mix(in srgb, var(--hero-stat-accent, var(--hero-accent)) 24%, rgba(255, 255, 255, 0.1));
@@ -3216,6 +3053,14 @@ tr.sumline td:nth-child(6) {
   color: var(--hero-accent-strong);
   font-size: 15px;
   font-weight: 650;
+  line-height: 1.3;
+}
+.hero-skill-type {
+  margin-top: 2px;
+  color: #aaa9b3;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
   line-height: 1.3;
 }
 .hero-skill-popover__recommendation {
@@ -3405,13 +3250,11 @@ tr.sumline td:nth-child(6) {
   color: color-mix(in srgb, currentColor 82%, white);
 }
 .stat-legend {
-  width: min(1180px, calc(100vw - 64px));
-  margin: 12px 0 0 50%;
+  margin: 12px 0 0;
   padding: 9px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface-1);
-  transform: translateX(-50%);
+  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .stat-legend__title {
   display: block;
@@ -3474,9 +3317,6 @@ tr.sumline td:nth-child(6) {
 .herocard:not(.on) .hero-stat__label {
   color: light-dark(var(--text-secondary), color-mix(in srgb, var(--hero-stat-accent) 78%, white));
 }
-.stat-legend {
-  background: light-dark(var(--surface-2), var(--surface-1));
-}
 .stat-legend .hero-stat {
   background: light-dark(var(--surface-2), transparent);
 }
@@ -3506,7 +3346,7 @@ tr.sumline td:nth-child(6) {
 }
 @media (max-width: 900px) {
   .hero-grid {
-    column-gap: 16px;
+    --hero-grid-gap: 16px;
     row-gap: 24px;
   }
 }
@@ -3515,9 +3355,7 @@ tr.sumline td:nth-child(6) {
     row-gap: 28px;
   }
   .hero-card-shell {
-    flex-basis: 100%;
-    max-width: 410px;
-    min-width: 0;
+    --hero-columns: 1;
     padding-top: 8px;
   }
 }
@@ -3528,10 +3366,7 @@ tr.sumline td:nth-child(6) {
 }
 @media (max-width: 450px) {
   .hero-grid {
-    width: 100%;
-    margin-left: 0;
-    transform: none;
-    column-gap: 12px;
+    --hero-grid-gap: 12px;
     row-gap: 28px;
   }
   .hero-card-shell {
@@ -3539,11 +3374,6 @@ tr.sumline td:nth-child(6) {
   }
   .hero-grid .herocard {
     min-height: max(205px, 62.5cqw);
-  }
-  .stat-legend {
-    width: 100%;
-    margin-left: 0;
-    transform: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3561,6 +3391,9 @@ tr.sumline td:nth-child(6) {
 }
 /* Hero cards: touch text wrapping and skill targets. */
 @media (pointer: coarse) {
+  .herocard {
+    --hero-stat-row: 44px;
+  }
   .hero-stat--interactive {
     min-height: 44px;
     gap: 4px;
@@ -3643,12 +3476,6 @@ tr.sumline td:nth-child(6) {
     --text-secondary: #a9a8b2;
     --text-muted: #9696a2;
   }
-}
-.check-section {
-  padding: 0 14px 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: light-dark(var(--surface-2), var(--surface-1));
 }
 .check-sub {
   font-size: 13px;
@@ -3824,9 +3651,6 @@ tr.sumline td:nth-child(6) {
   .check-panel .row {
     grid-template-columns: minmax(0, 1fr);
   }
-  .check-section {
-    padding: 0 10px 10px;
-  }
   .check-section .verdict {
     align-items: flex-start;
     flex-direction: column;
@@ -3843,19 +3667,6 @@ tr.sumline td:nth-child(6) {
   }
 }
 
-.delta-bad,
-.delta-ok {
-  display: inline-block;
-  margin-left: 2px;
-  font-size: 11px;
-  font-weight: 500;
-}
-.delta-bad {
-  color: var(--text-danger);
-}
-.delta-ok {
-  color: var(--text-muted);
-}
 /* Shared feedback, help and footer. */
 .note {
   font-size: 13px;
@@ -4022,7 +3833,6 @@ details.help ol {
 .fold > summary {
   cursor: pointer;
   list-style: none;
-  gap: 10px;
 }
 .fold > summary::-webkit-details-marker {
   display: none;
@@ -4046,20 +3856,293 @@ details.help ol {
   color: var(--text-primary);
   border-color: var(--text-primary);
 }
-.fold > summary:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: 4px;
-}
 .foldsum {
-  margin-left: auto;
+  margin: 0;
   font-size: 12px;
-  color: var(--text-muted);
+  line-height: 1.5;
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 .fold[open] .foldsum {
   display: none;
+}
+
+/* Every calculator stage shares this shell and header; bodies keep their own layout. */
+.accordion {
+  --accordion-padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: light-dark(var(--surface-2), var(--surface-1));
+  padding: 0;
+  margin: 0 0 24px;
+}
+.accordion > summary.sechead {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) 8px;
+  align-items: center;
+  gap: 16px;
+  min-height: 60px;
+  margin: 0;
+  padding: 14px var(--accordion-padding) 14px calc(var(--accordion-padding) + 12px);
+  border: 0;
+  border-radius: 11px;
+}
+.accordion > summary.sechead::after {
+  grid-column: 3;
+  grid-row: 1;
+  margin: 0;
+}
+.accordion > summary.sechead .sectitle {
+  position: relative;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+}
+.accordion > summary.sechead .sectitle::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--section-accent);
+  transform: translateY(-50%);
+}
+.accordion > summary:hover {
+  background: light-dark(var(--surface-1), var(--surface-2));
+}
+.accordion > summary:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.accordion[open] > summary {
+  border-radius: 11px 11px 0 0;
+  box-shadow: inset 0 -1px var(--border);
+}
+.accordion-body {
+  padding: var(--accordion-padding);
+}
+.accordion-body > :last-child {
+  margin-bottom: 0;
+}
+.accordion-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+.accordion-actions button {
+  height: 34px;
+  font-size: 13px;
+}
+.formation-section > .accordion-body {
+  padding: 16px 0;
+}
+#foldHeroes > .accordion-body {
+  padding: 12px;
+}
+@media (max-width: 600px) {
+  .accordion {
+    --accordion-padding: 12px;
+  }
+  .accordion > summary.sechead {
+    grid-template-columns: minmax(0, 1fr) 8px;
+    gap: 4px 12px;
+    min-height: 88px;
+  }
+  /* Same height open or closed, so the header never moves under a tap; the
+     summary line is hidden while open, so centre the title in its place. */
+  .accordion[open] > summary.sechead .sectitle {
+    grid-row: 1 / 3;
+  }
+  .accordion > summary.sechead::after {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  .foldsum {
+    grid-column: 1;
+    text-align: left;
+  }
+  .accordion-actions button {
+    min-height: 44px;
+  }
+}
+
+/* Joiner season control: same header and badge artwork, independent of folding. */
+#foldHeroes > summary.sechead {
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) 196px 16px;
+}
+#foldHeroes > summary.sechead::after {
+  grid-column: 4;
+  justify-self: end;
+}
+.season-selector {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+}
+.season-selector-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  padding: 4px 12px 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-pro);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.season-selector-trigger:hover,
+.season-selector-trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--text-pro) 55%, var(--border));
+  background: color-mix(in srgb, var(--text-pro) 5%, var(--surface-2));
+}
+.season-selector-trigger:focus-visible,
+.season-selector-option:focus-visible {
+  outline: 2px solid var(--text-pro);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+.season-selector-trigger > i {
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.season-selector-trigger[aria-expanded='true'] > i {
+  transform: translateY(2px) rotate(225deg);
+}
+.season-selector .season-badge,
+.season-selector-menu .season-badge {
+  position: static;
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  transform: none;
+  filter: none;
+}
+.season-selector-menu {
+  position: fixed;
+  inset: auto;
+  z-index: 1300;
+  width: min(400px, calc(100vw - 24px));
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  box-shadow: 0 10px 28px light-dark(rgba(38, 57, 82, 0.18), rgba(0, 0, 0, 0.42));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.season-selector-menu:popover-open {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+/* Fallback for browsers without popovers; kept separate because an unknown
+   pseudo-class would invalidate a combined selector list. */
+.season-selector-menu:not([popover]):not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+.season-selector-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: auto;
+  min-width: 0;
+  padding: 6px 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-pro);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.season-selector-menu .season-badge {
+  width: 52px;
+  height: 52px;
+}
+.season-selector-option:hover {
+  background: var(--surface-1);
+  border-color: var(--text-pro);
+}
+.season-selector-option[aria-selected='true'] {
+  border: 2px solid var(--text-pro);
+  padding: 5px 1px;
+  background: color-mix(in srgb, var(--text-pro) 4%, var(--surface-2));
+  font-weight: 650;
+}
+.season-selector-check {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  visibility: hidden;
+  font-size: 12px;
+}
+.season-selector-option[aria-selected='true'] .season-selector-check {
+  visibility: visible;
+}
+.hero-card-shell[hidden],
+.hero-priority-chip[hidden] {
+  display: none;
+}
+@media (max-width: 600px) {
+  #foldHeroes > summary.sechead {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 180px) 16px;
+    gap: 4px 8px;
+  }
+  #foldHeroes > summary.sechead::after {
+    grid-column: 3;
+  }
+  #foldHeroes .season-selector {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  #foldHeroes .foldsum {
+    font-size: 11px;
+  }
+}
+@media (max-width: 420px) {
+  #foldHeroes > summary.sechead {
+    grid-template-columns: minmax(0, 1fr) 120px 16px;
+    padding-left: 20px;
+    min-height: 104px;
+  }
+  #foldHeroes > summary.sechead .sectitle {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .season-selector-trigger {
+    gap: 4px;
+    padding: 4px 8px 4px 2px;
+    font-size: 12px;
+  }
+  .season-selector-trigger .season-badge {
+    width: 24px;
+    height: 24px;
+  }
+  .season-selector-menu:popover-open {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .season-selector-menu:not([popover]):not([hidden]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

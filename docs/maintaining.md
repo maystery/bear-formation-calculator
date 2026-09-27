@@ -4,27 +4,33 @@ The site has no build step. Keep script order in `index.html`: pure calculation 
 
 ## Responsibilities
 
-| File                     | Owns                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `calculator-core.js`     | Parsing, capacity rules, allocation, rounding, and `calculateFormation(settings)` |
-| `hero-ui.js`             | Hero metadata, assignment priority, and generated card markup                     |
-| `settings.js`            | Field schema, validation, serialization, and setup URL compatibility              |
-| `hero-controller.js`     | Card state, portrait loading, visibility, and skill popovers                      |
-| `capacity-controller.js` | Capacity summaries, skill menus, and Bison state                                  |
-| `settings-controller.js` | Reading/applying browser settings, theme, storage, and save scheduling            |
-| `formation-view.js`      | Field validation feedback, result rendering, march checking, and formation text   |
-| `feedback.js`            | Feedback animations and clipboard fallback                                        |
-| `app.js`                 | Controller initialization, event wiring, batched updates, copy actions, and reset |
-| `release-history.js`     | Version history, release dates, and change descriptions                           |
-| `release-notes.js`       | Footer version link and commit metadata                                           |
-| `changelog/index.html`   | Dedicated release history page shell and saved-theme initialization               |
-| `changelog.js`           | Release entries, current-version label, and version anchors                       |
-| `revision.txt`           | Jekyll template for the deployed Git commit hash                                  |
-| `styles.css`             | Named component sections, with responsive and accessibility overrides nearby      |
+| File                     | Owns                                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `calculator-core.js`     | Parsing, number formatting, capacity rules, allocation, rounding, and `calculateFormation(settings)` |
+| `hero-ui.js`             | Hero metadata, assignment priority, and generated card markup                                        |
+| `settings.js`            | Field schema, validation, serialization, and setup URL compatibility                                 |
+| `hero-controller.js`     | Card state, portrait loading, visibility, and skill popovers                                         |
+| `capacity-controller.js` | Capacity summaries, skill menus, and Bison state                                                     |
+| `settings-controller.js` | Reading/applying browser settings, theme, storage, and save scheduling                               |
+| `formation-view.js`      | Field validation feedback, result rendering, march checking, and formation text                      |
+| `feedback.js`            | Feedback animations and clipboard fallback                                                           |
+| `app.js`                 | Controller initialization, event wiring, batched updates, copy actions, and reset                    |
+| `release-history.js`     | Version history, release dates, and change descriptions                                              |
+| `release-notes.js`       | Footer version link and commit metadata                                                              |
+| `changelog/index.html`   | Dedicated release history page shell and saved-theme initialization                                  |
+| `changelog.js`           | Release entries, current-version label, and version anchors                                          |
+| `revision.txt`           | Jekyll template for the deployed Git commit hash                                                     |
+| `styles.css`             | Named component sections, with responsive and accessibility overrides nearby                         |
 
 Create each browser controller once per page load. Controllers own their render caches and popup state. Application updates go through the scheduled callback; explicit copy actions flush pending rendering first. Checker-only edits reuse the last valid formation ratio. Saves are debounced and flushed on page hide; reset cancels both pending rendering and saving.
 
 `calculateFormation` takes parsed troop counts, non-negative ratio weights, march count, ordered leader keys, capacities, skill levels, buff state, and filling strategy. It returns the full result, including bottlenecks and per-march rows, without reading the DOM or mutating its inputs. A zero ratio returns `valid:false`. Number-field errors are handled by the view before calling it. Zero capacities mean unlimited capacity.
+
+## Collapsible sections
+
+Each top-level calculator stage uses `details.accordion.fold` with a direct `summary.sechead`, a heading, a `.foldsum` label, and an `.accordion-body`. The shared accordion CSS owns the shell, header spacing, accent bar, chevron, focus/hover states, and mobile summary wrapping. Keep action buttons inside the body and register open state as a non-shared `fold` preference in `settings.js`.
+
+Summaries update alongside their source data: `formation-view.js` owns formation, capacity, capacity-buff, result, and checker summaries, so they all follow the **Units** setting; the hero controller owns the assignment summary. Invalid inputs must replace stale summary values. Hero assignment counts use the number of enabled heroes actually assigned, capped by the march count. Collapsing a section must not change its settings or calculations.
 
 ## Adding a setting
 
@@ -37,11 +43,13 @@ Create each browser controller once per page load. Controllers own their render 
 
 ## Adding a hero or changing artwork
 
+`season-selector.js` is a reusable presentation controller with `value`, `onChange`, and `setValue`; it uses the native popover top layer and the existing season badge renderer. `selectedSeason` is a shared formation field, defaulting to S8 for compatibility. `hero-ui.js` owns cumulative availability (`hero.season <= selectedSeason`); the hero controller applies it to cards, priority numbering, and leader assignment without changing hidden checkbox values. The selector is the one interactive control inside an accordion summary and prevents the summary's default toggle action. Other header clicks still fold the section.
+
 Add metadata to `HEROES` and place the key in `HERO_SLOTS` in `hero-ui.js`; that order drives cards, priority chips, assignment, and settings fields. The expedition skill’s `recommendedLevel` is the single source for card and popover level guidance. It does not restrict hero selection; recommended stat values separately highlight effect progression rows. Update the README roster and hero expectations in the unit tests. Export assets with `python3 scripts/export-artwork.py` and check small-screen portrait clipping and wrapped skill names.
 
 ## Publishing an update
 
-The footer shows the newest version in `release-history.js` and the first seven characters of the deployed commit hash, with the full hash available on hover. Select the version link to open **Release history** at `changelog/#v1-1-0` (the anchor is derived from the current version). Releases appear newest first on this separate page; the calculator has no inline release-history panel. The version and notes use the same history data and work offline. `versionAnchor` in `release-history.js` creates stable IDs shared by the footer and page renderer. Links are relative to support the GitHub Pages project path; direct file previews link to `changelog/index.html`. The new page reads the same saved theme before paint and otherwise follows the system theme, without writing calculator settings.
+The footer shows the newest version in `release-history.js` and the first seven characters of the deployed commit hash, with the full hash available on hover. Select the version link to open **Release history** at `changelog/#v1-2-0` (the anchor is derived from the current version). Releases appear newest first on this separate page; the calculator has no inline release-history panel. The version and notes use the same history data and work offline. `versionAnchor` in `release-history.js` creates stable IDs shared by the footer and page renderer. Links are relative to support the GitHub Pages project path; direct file previews link to `changelog/index.html`. The new page reads the same saved theme before paint and otherwise follows the system theme, without writing calculator settings.
 
 The existing GitHub Pages deployment from `main` processes `revision.txt` with Jekyll, replacing `site.github.build_revision` with the source commit being published. See [GitHub Metadata configuration](https://jekyll.github.io/github-metadata/configuration/) for the revision field. Keep the template's YAML front matter and Jekyll processing enabled. The footer fetches this small, same-origin file without relying on the GitHub API or a manually maintained hash. Direct local files and a static server serving the unprocessed template show **Local preview**; missing or invalid deployment metadata shows **Commit unavailable**.
 
@@ -49,7 +57,7 @@ The existing GitHub Pages deployment from `main` processes `revision.txt` with J
 2. Prepend a matching entry to `releases` in `release-history.js`, with a `version`, ISO `date` (`YYYY-MM-DD`), short `title`, and user-facing `changes`. An optional `description` adds context. Describe differences from the preceding version and keep older entries intact.
 3. Run the validation below and publish the repository files together using the existing static-site deployment process. GitHub Pages updates the commit hash automatically on each deployment, including revisions within the same version.
 
-Version `1.0.0` summarizes the calculator's features. Version `1.1.0` adds release notes and the footer version and commit hash. Release dates are optional; entries without a date omit it.
+Version `1.0.0` summarizes the calculator's features. Version `1.1.0` adds release notes and the footer version and commit hash. Version `1.2.0` adds season selection, Luna, and collapsible calculator sections. Release dates are optional; entries without a date omit it.
 
 ## Validation
 

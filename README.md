@@ -46,9 +46,13 @@ Marches are capped at 7, the game's limit.
 
 ## Heroes
 
-Nine heroes can lead a march, in this assignment priority: **Wee & Woo**, **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, **Margot**, **Vivian**, **Ava**, and **Hilde**. Each enabled hero converts a march from the squad cap to the hero cap. Amadeus starts disabled; the other eight start enabled.
+Ten heroes can lead a march, in this assignment priority: **Wee & Woo**, **Amadeus**, **Chenko**, **Yeonwoo**, **Amane**, **Margot**, **Luna**, **Vivian**, **Ava**, and **Hilde**. Each enabled hero converts a march from the squad cap to the hero cap. Amadeus and Luna start disabled; the other eight start enabled.
+
+Luna is a Season 8 hero. Her passive **Driving Light** increases total Squad Attack by **5% / 10% / 15% / 20% / 25%** at levels 1–5, with level 5 recommended. Skill effects are reference information; the calculator allocates troops and capacity rather than estimating damage.
 
 Untick a hero to leave them out of the split. The cards show recommended skill levels and effect progression; the priority strip shows assignment order. Enable more heroes than you have marches and the extras sit out. The calculator still supports at most seven marches.
+
+The season selector in the Joiner Heroes header shows heroes available **up to and including** the selected season. Cards, assignment priority, and march leaders use the same filter. Hidden heroes retain their enabled choices for when you return to a later season. The selection is saved and included in setup links. Season 8 is the default to preserve the existing full roster. Use arrow keys, Home/End, and Enter/Space in the dropdown; Escape closes it.
 
 ## Example
 
@@ -76,6 +80,8 @@ Every number field accepts shorthand — `566k`, `1.2m` and `281,850` all parse 
 ## Interface
 
 Everything you type is saved in the browser, including the filling strategy, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
+
+All six calculator stages—**Formation Setup**, **Capacity**, **Capacity buffs**, **Joiner heroes**, **Result**, and **Check a march**—use the same collapsible header. Select anywhere on the header to expand or collapse it. Collapsed summaries show the current ratios and strategy, capacities, active bonus, hero assignments, result bottleneck, or march verdict. Sections start expanded, remember their state in your browser, and keep their settings active while collapsed. Action buttons appear inside the expanded sections.
 
 Use **Copy formation** to copy the calculated marches as readable text. The result table also shows each march's used capacity, effective cap and utilization percentage. **Copy setup link** creates a URL containing the troop, ratio, capacity, march, filling strategy and hero settings; opening that link loads the shared setup over the browser's saved values and shows a confirmation banner.
 

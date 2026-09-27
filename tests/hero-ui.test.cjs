@@ -13,13 +13,29 @@ const {
   HEROES,
   HERO_SLOTS,
   makePortraitClipPath,
+  isHeroAvailableForSeason,
 } = require('../hero-ui.js');
 
 const projectRoot = path.resolve(__dirname, '..');
 
-test('season badge renderer supports all seven season assets', () => {
-  assert.deepEqual(Object.keys(SEASON_BADGE_BY_SEASON), ['1', '2', '3', '4', '5', '6', '7']);
-  for (let season = 1; season <= 7; season++) {
+test('season availability is cumulative and retains assignment priority', () => {
+  const available = (season) =>
+    HERO_SLOTS.filter(({ key }) => isHeroAvailableForSeason(HEROES[key], season)).map(
+      ({ key }) => key,
+    );
+  assert.deepEqual(available(1), ['amadeus', 'chenko', 'yeonwoo', 'amane']);
+  assert.deepEqual(available(3), ['amadeus', 'chenko', 'yeonwoo', 'amane', 'hilde']);
+  assert.deepEqual(available(4), ['amadeus', 'chenko', 'yeonwoo', 'amane', 'margot', 'hilde']);
+  assert.deepEqual(
+    available(8),
+    HERO_SLOTS.map(({ key }) => key),
+  );
+  assert.equal(isHeroAvailableForSeason(HEROES.luna, 7), false);
+});
+
+test('season badge renderer supports all eight season assets', () => {
+  assert.deepEqual(Object.keys(SEASON_BADGE_BY_SEASON), ['1', '2', '3', '4', '5', '6', '7', '8']);
+  for (let season = 1; season <= 8; season++) {
     const asset = SEASON_BADGE_BY_SEASON[season];
     assert.equal(fs.existsSync(path.join(projectRoot, asset)), true, asset);
   }
@@ -28,7 +44,7 @@ test('season badge renderer supports all seven season assets', () => {
 test('hero presentation data preserves priority, seasons and skill recommendations', () => {
   assert.deepEqual(
     HERO_SLOTS.map((hero) => hero.key),
-    ['weeWoo', 'amadeus', 'chenko', 'yeonwoo', 'amane', 'margot', 'vivian', 'ava', 'hilde'],
+    ['weeWoo', 'amadeus', 'chenko', 'yeonwoo', 'amane', 'margot', 'luna', 'vivian', 'ava', 'hilde'],
   );
   assert.deepEqual(Object.fromEntries(HERO_SLOTS.map(({ key }) => [key, HEROES[key].season])), {
     amadeus: 1,
@@ -36,6 +52,7 @@ test('hero presentation data preserves priority, seasons and skill recommendatio
     yeonwoo: 1,
     amane: 1,
     margot: 4,
+    luna: 8,
     vivian: 5,
     ava: 7,
     weeWoo: 7,
@@ -53,6 +70,7 @@ test('hero presentation data preserves priority, seasons and skill recommendatio
       yeonwoo: 'On Guard',
       amane: 'Tri-Phalanx',
       margot: 'Warbringer',
+      luna: 'Driving Light',
       vivian: 'Crouching Tiger',
       ava: 'Dissolution',
       weeWoo: 'Artillerymen',
@@ -69,6 +87,7 @@ test('hero presentation data preserves priority, seasons and skill recommendatio
       yeonwoo: 4,
       amane: 5,
       margot: 5,
+      luna: 5,
       vivian: 5,
       ava: 5,
       weeWoo: 2,
@@ -92,12 +111,26 @@ test('hero presentation data preserves priority, seasons and skill recommendatio
       yeonwoo: 'strong',
       amane: 'strong',
       margot: 'subtle',
+      luna: 'strong',
       vivian: 'strong',
       ava: 'strong',
       weeWoo: 'medium',
       hilde: 'subtle',
     },
   );
+});
+
+test('Luna has the supplied passive attack progression and starts disabled', () => {
+  assert.equal(HEROES.luna.defaultEnabled, false);
+  assert.equal(HEROES.luna.variant, 'gold');
+  assert.equal(HEROES.luna.expeditionSkill.type, 'Passive');
+  assert.equal(
+    HEROES.luna.expeditionSkill.description,
+    "Luna's lunar light drives away wickedness, increasing total Squad's Attack by up to 25%.",
+  );
+  assert.deepEqual(HEROES.luna.expeditionSkill.effects, [
+    { stat: 'attack', values: [5, 10, 15, 20, 25] },
+  ]);
 });
 
 test('hero artwork preserves transparency and valid breakout geometry', () => {
@@ -107,7 +140,8 @@ test('hero artwork preserves transparency and valid breakout geometry', () => {
     assert.equal(fs.existsSync(path.join(projectRoot, hero.avatar)), true, hero.avatar);
     assert.deepEqual(Object.keys(hero.art), ['strength', 'breakout', 'x', 'y', 'width', 'height']);
     assert.equal(['subtle', 'medium', 'strong'].includes(hero.art.strength), true);
-    assert.deepEqual(Object.keys(hero.art.breakout), [
+    const { leftBottom, ...breakout } = hero.art.breakout;
+    assert.deepEqual(Object.keys(breakout), [
       'start',
       'end',
       'height',
@@ -115,6 +149,12 @@ test('hero artwork preserves transparency and valid breakout geometry', () => {
       'unrestricted',
       'allowLeft',
     ]);
+    if (leftBottom !== undefined) {
+      // Only a left breakout may reach past the start of the rounded bottom-left corner.
+      assert.equal(hero.art.breakout.allowLeft, true, slot.key);
+      assert.ok(leftBottom > HERO_ARTBOARD.height - HERO_ARTBOARD.radius, slot.key);
+      assert.ok(leftBottom < HERO_ARTBOARD.height, slot.key);
+    }
     if (hero.art.breakout.unrestricted) {
       assert.equal(['amane', 'ava'].includes(slot.key), true);
       assert.equal(hero.art.breakout.start, 0);
@@ -182,6 +222,16 @@ test('left breakout opens the side canvas without opening the bottom', () => {
     shoulder: 34,
     allowLeft: true,
   });
-  assert.match(d, /M -50 -50 L 3 -50 L 3 260 L -50 260 Z$/);
-  assert.doesNotMatch(d, /-50 261/);
+  // Stops at the start of the rounded bottom-left corner (260 - 16).
+  assert.match(d, /M -50 -50 L 3 -50 L 3 244 L -50 244 Z$/);
+  assert.doesNotMatch(d, /L 3 260|-50 260/);
+  const lowered = makePortraitClipPath({
+    start: 22,
+    end: 285,
+    height: 28,
+    shoulder: 34,
+    allowLeft: true,
+    leftBottom: 258,
+  });
+  assert.match(lowered, /M -50 -50 L 3 -50 L 3 258 L -50 258 Z$/);
 });

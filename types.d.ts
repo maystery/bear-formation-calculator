@@ -4,6 +4,7 @@ export type Troops = Record<TroopKey, number>;
 export type FillStrategy = 'equal' | 'sequential';
 export type Skill = 'valora' | 'bison';
 export type Theme = 'auto' | 'light' | 'dark';
+export type Season = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type ParsedNumber = { valid: boolean; value: number };
 export interface FormationSettings {
   troops: Troops;

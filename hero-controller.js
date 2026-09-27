@@ -6,14 +6,32 @@ window.BearHeroController = Object.freeze({
    * @returns {import('./types').HeroController} */
   create() {
     const $ = (id) => document.getElementById(id);
-    const { HEROES, HERO_SLOTS, renderHeroCards, renderHeroPriority, renderStatLegend } =
-      BearHeroUI;
+    const {
+      HEROES,
+      HERO_SLOTS,
+      renderHeroCards,
+      renderHeroPriority,
+      renderStatLegend,
+      isHeroAvailableForSeason,
+    } = BearHeroUI;
     $('heroGrid').innerHTML = renderHeroCards();
     $('heroPriority').innerHTML = renderHeroPriority();
     $('statLegend').innerHTML = renderStatLegend();
 
     const heroGrid = $('heroGrid');
     const heroCards = [...heroGrid.querySelectorAll('.herocard')];
+    const seasonInput = $('selectedSeason');
+    const selectedSeason = () => Number(seasonInput.value);
+    const seasonSelector = BearSeasonSelector.create({
+      root: $('heroSeasonSelector'),
+      value: selectedSeason(),
+      onChange(season) {
+        seasonInput.value = String(season);
+        seasonInput.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+    });
+    const availableSlots = () =>
+      HERO_SLOTS.filter(({ key }) => isHeroAvailableForSeason(HEROES[key], selectedSeason()));
     const visibleHeroCards = new Set();
     function loadPortrait(card) {
       const portrait = card.querySelector('.hero-card__image[data-src]');
@@ -225,24 +243,56 @@ window.BearHeroController = Object.freeze({
     // Safari does not always synthesize a click when a blank area is tapped.
     document.addEventListener('pointerdown', dismissSkillDetails);
     document.addEventListener('click', dismissSkillDetails);
+    $('foldHeroes').addEventListener('toggle', () => {
+      if (!$('foldHeroes').open) {
+        closeSkillDetails();
+        seasonSelector.close();
+      }
+    });
     window.addEventListener('resize', scheduleSkillPosition);
     window.addEventListener('scroll', scheduleSkillPosition, true);
 
     function leaderOrder() {
-      return HERO_SLOTS.filter((h) => $(h.id).checked).map((h) => h.key);
+      return availableSlots()
+        .filter((h) => $(h.id).checked)
+        .map((h) => h.key);
     }
     let renderedHeroState = null;
+    let renderedSeason = null;
     function syncHeroCards(order, n) {
-      const state = [n, ...order].join('|');
+      const season = selectedSeason();
+      const state = [season, n, ...order].join('|');
       if (state === renderedHeroState) return;
+      if (season !== renderedSeason) {
+        // A pinned skill popover may belong to a hero this season hides.
+        closeSkillDetails();
+        seasonSelector.setValue(season);
+        heroGrid.style.setProperty(
+          '--hero-grid-skill-rows',
+          String(
+            Math.max(
+              ...availableSlots().map(({ key }) => HEROES[key].expeditionSkill.effects.length),
+            ),
+          ),
+        );
+        renderedSeason = season;
+      }
+      const available = availableSlots();
       let benched = 0;
+      let priority = 0;
       const priorityChips = $('heroPriority').querySelectorAll('.hero-priority-chip');
       HERO_SLOTS.forEach((h, index) => {
         const on = $(h.id).checked;
+        const visible = isHeroAvailableForSeason(HEROES[h.key], season);
+        $(h.id).closest('.hero-card-shell').hidden = !visible;
+        priorityChips[index].hidden = !visible;
+        if (!visible) return;
+        priority++;
+        priorityChips[index].querySelector('b').textContent = priority;
         priorityChips[index].classList.toggle('is-disabled', !on);
         priorityChips[index].setAttribute(
           'aria-label',
-          `${index + 1}. ${HEROES[h.key].name}${on ? '' : ', disabled'}`,
+          `${priority}. ${HEROES[h.key].name}${on ? '' : ', disabled'}`,
         );
         priorityChips[index].title = on ? HEROES[h.key].name : `${HEROES[h.key].name} — disabled`;
         const slot = order.indexOf(h.key);
@@ -261,7 +311,7 @@ window.BearHeroController = Object.freeze({
           : 'Left out of the split';
       });
       const led = Math.min(order.length, n);
-      $('heroSum').textContent = `${order.length}/${HERO_SLOTS.length} heroes`;
+      $('heroSum').textContent = `${order.length}/${available.length} enabled · ${led} assigned`;
       $('heroHint').textContent =
         led === 0
           ? 'No hero leading — every march is held to the squad deployment capacity.'

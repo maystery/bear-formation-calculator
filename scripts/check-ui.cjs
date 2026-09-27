@@ -7,6 +7,230 @@ const path = require('node:path');
 
 for (const engine of ['chromium', 'webkit']) {
   browserSuite(`Rendered UI: ${engine}`, { engine }, (test) => {
+    test('Luna shows her passive skill, joins after Margot, and persists through shared setups', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url + '?setup=1&n=7');
+      const card = page.locator('[data-hero="luna"]');
+      assert.equal(await page.locator('#lunaOn').isChecked(), false);
+      assert.equal(await card.locator('.season-badge').getAttribute('aria-label'), 'Season 8');
+      await card.locator('.hero-stat--interactive').click();
+      const popover = page.locator('#skill-popover-luna-attack');
+      await popover.waitFor({ state: 'visible' });
+      assert.equal(await popover.isVisible(), true);
+      assert.match(await popover.innerText(), /Passive/);
+      assert.match(await popover.innerText(), /Luna's lunar light drives away wickedness/);
+      assert.deepEqual(await popover.locator('.skill-level-row strong').allTextContents(), [
+        '+5%',
+        '+10%',
+        '+15%',
+        '+20%',
+        '+25%',
+      ]);
+      assert.match(await popover.locator('.is-recommended-level').innerText(), /Lv\. 5/);
+      await page.keyboard.press('Escape');
+      await card.locator('.heroname').click();
+      await nextPaint(page);
+      const leaders = await page.locator('#rows tbody .leadcell span').allTextContents();
+      assert.deepEqual(leaders.slice(4), ['Margot', 'Luna', 'Vivian']);
+      assert.equal(await page.locator('#pill-luna').innerText(), 'March 6');
+      await page.waitForFunction(
+        () => JSON.parse(localStorage.getItem('bearcalc.v1')).lunaOn === true,
+      );
+      await page.reload();
+      assert.equal(await page.locator('#lunaOn').isChecked(), true);
+      await page.goto(url + '?setup=1&lunaOn=0');
+      assert.equal(await page.locator('#lunaOn').isChecked(), false);
+      await page.goto(url + '?setup=1&lunaOn=1');
+      assert.equal(await page.locator('#lunaOn').isChecked(), true);
+      await page.locator('#reset').click();
+      await page.waitForFunction(() => document.getElementById('lunaOn')?.checked === false);
+    });
+
+    test('all stage summaries stay accurate while collapsed and reset stale values', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(
+        url +
+          '?setup=1&unit=full&n=7&fillStrategy=sequential&cap=139310&valoraSkill=10&bison=1&bisonSkill=4',
+      );
+      await page.locator('#ci').fill('10000');
+      await page.locator('#cc').fill('10000');
+      await page.locator('#ca').fill('98000');
+      await nextPaint(page);
+      const ids = [
+        'foldFormation',
+        'foldCap',
+        'foldBuffs',
+        'foldHeroes',
+        'foldResult',
+        'foldCheck',
+      ];
+      for (const id of ids) {
+        const stage = page.locator(`#${id}`);
+        assert.equal(
+          await stage.locator(':scope > summary button').count(),
+          id === 'foldHeroes' ? 1 : 0,
+        );
+        await stage.locator(':scope > summary').focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await stage.locator('.accordion-body').isVisible(), false);
+        assert.equal(await stage.locator('.foldsum').isVisible(), true);
+      }
+      assert.equal(
+        await page.locator('#formationSum').innerText(),
+        '10 / 10 / 80 · 7 marches · Fill in order',
+      );
+      assert.equal(await page.locator('#buffSum').innerText(), '+36,000 bonus · 175,310 march cap');
+      assert.equal(await page.locator('#heroSum').innerText(), '8/10 enabled · 7 assigned');
+      assert.match(
+        await page.locator('#checkSum').innerText(),
+        /^118,000 troops · Ratio needs adjustment$/,
+      );
+      assert.match(await page.locator('#resultSum').innerText(), /used · Archers bottleneck$/);
+      await page.waitForFunction((ids) => {
+        const saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
+        return ids.every((id) => saved[id] === false);
+      }, ids);
+      await page.reload();
+      for (const id of ids)
+        assert.equal(await page.locator(`#${id}`).evaluate((el) => el.open), false);
+      await page.evaluate(() => {
+        const edit = (id, value) => {
+          const field = document.getElementById(id);
+          field.value = value;
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        edit('squad', '0');
+        edit('cap', '0');
+        document.getElementById('bisonBuff').click();
+        for (const field of document.querySelectorAll('#heroGrid input[type="checkbox"]:checked'))
+          field.click();
+      });
+      await nextPaint(page);
+      assert.equal(await page.locator('#capSum').innerText(), 'Squad ∞ · March ∞');
+      assert.equal(
+        await page.locator('#buffSum').innerText(),
+        'Bonus unused · ∞ march cap · Bison inactive',
+      );
+      assert.equal(await page.locator('#heroSum').innerText(), '0/10 enabled · 0 assigned');
+      await page.evaluate(() => {
+        for (const id of ['ci', 'cc', 'ca']) {
+          const field = document.getElementById(id);
+          field.value = '0';
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      await nextPaint(page);
+      assert.equal(await page.locator('#checkSum').innerText(), 'No troops entered');
+      await page.evaluate(() => {
+        const field = document.getElementById('tol');
+        field.value = 'bad';
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await nextPaint(page);
+      assert.equal(await page.locator('#checkSum').innerText(), 'March inputs need attention');
+      await page.evaluate(() => {
+        const field = document.getElementById('si');
+        field.value = 'bad';
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await nextPaint(page);
+      assert.match(await page.locator('#formationSum').innerText(), /Inputs need attention/);
+      assert.equal(await page.locator('#resultSum').innerText(), 'Needs valid formation inputs');
+      await page.locator('#foldFormation > summary').click();
+      await page.locator('#reset').click();
+      await page.waitForFunction(() => document.getElementById('si')?.value === '281.85k');
+      for (const id of ids)
+        assert.equal(await page.locator(`#${id}`).evaluate((el) => el.open), true);
+    });
+
+    test('ratio warning ignores floating-point noise in decimal weights', async ({ page, url }) => {
+      await page.goto(url);
+      for (const [id, value] of [
+        ['ri', '0.1'],
+        ['rc', '65.1'],
+        ['ra', '34.8'],
+      ])
+        await page.locator(`#${id}`).fill(value);
+      await nextPaint(page);
+      assert.equal(await page.locator('#warn').innerText(), '');
+      await page.locator('#ra').fill('24.8');
+      await nextPaint(page);
+      assert.equal(await page.locator('#warn').innerText(), 'Sums to 90% — normalising.');
+    });
+
+    test('formation and buffs collapse independently, preserve calculations, persist and reset', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      await page.locator('#si').fill('321k');
+      await nextPaint(page);
+      const rows = await page.locator('#rows').innerText();
+      for (const id of ['foldFormation', 'foldBuffs']) {
+        assert.equal(await page.locator(`#${id}`).evaluate((el) => el.open), true);
+        await page.locator(`#${id} > summary`).focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator(`#${id}`).evaluate((el) => el.open), false);
+      }
+      assert.equal(await page.locator('#si').isVisible(), false);
+      assert.equal(await page.locator('#unit').isVisible(), false);
+      assert.equal(await page.locator('.capacity-buffs-grid').isVisible(), false);
+      for (const selector of [
+        '.formation-editor',
+        '#ri',
+        '#n',
+        '.strategy-options',
+        '.formation-note',
+      ]) {
+        assert.equal(await page.locator(selector).isVisible(), false);
+      }
+      assert.equal(await page.locator('#foldTroops').count(), 0);
+      for (const selector of ['#the', '#copySetup', '#reset']) {
+        assert.equal(await page.locator(selector).isVisible(), false);
+      }
+      assert.equal(await page.locator('#rows').innerText(), rows);
+      await page.waitForFunction(() => {
+        const saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
+        return saved.foldFormation === false && saved.foldBuffs === false;
+      });
+      await page.reload();
+      assert.equal(await page.locator('#foldFormation').evaluate((el) => el.open), false);
+      assert.equal(await page.locator('#foldBuffs').evaluate((el) => el.open), false);
+      assert.equal(await page.locator('#si').inputValue(), '321k');
+      assert.equal(await page.locator('#rows').innerText(), rows);
+      await page.locator('#foldBuffs > summary').click();
+      assert.equal(await page.locator('#si').isVisible(), false);
+      const trigger = page.locator('[data-input="valoraSkill"] .capacity-buff-level-trigger');
+      await trigger.scrollIntoViewIfNeeded();
+      await nextPaint(page);
+      await trigger.click();
+      const menu = page.locator(`#${await trigger.getAttribute('aria-controls')}`);
+      assert.equal(await menu.isVisible(), true);
+      await page.locator('#foldBuffs').evaluate((el) => {
+        el.open = false;
+      });
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-input="valoraSkill"] .capacity-buff-level-trigger')
+            .getAttribute('aria-expanded') === 'false',
+      );
+      assert.equal(await menu.isVisible(), false);
+      await page.locator('#foldFormation > summary').focus();
+      await page.keyboard.press('Space');
+      assert.equal(await page.locator('#si').isVisible(), true);
+      await page.locator('#unit').selectOption('full');
+      assert.equal(await page.locator('#foldFormation').evaluate((el) => el.open), true);
+      await page.locator('#reset').click();
+      await page.waitForFunction(() => document.getElementById('si')?.value === '281.85k');
+      assert.equal(await page.locator('#foldFormation').evaluate((el) => el.open), true);
+      assert.equal(await page.locator('#foldBuffs').evaluate((el) => el.open), true);
+    });
+
     test('footer version navigates to release history and back without changing settings', async ({
       page,
       url,

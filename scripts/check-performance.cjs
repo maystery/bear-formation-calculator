@@ -140,7 +140,7 @@ for (const engine of ['chromium', 'webkit']) {
           ]) {
             const node =
               key === 'buffs'
-                ? document.getElementById(id).closest('section')
+                ? document.getElementById(id).closest('.capacity-buffs-section')
                 : document.getElementById(id);
             new MutationObserver((records) => (window.uiMutations[key] += records.length)).observe(
               node,
@@ -271,8 +271,8 @@ for (const engine of ['chromium', 'webkit']) {
             }, fallback);
             await page.goto(url);
             await nextPaint(page);
-            assert.equal(await page.locator('.hero-card__image[href]').count(), fallback ? 9 : 0);
-            await page.locator('#foldHeroes > summary').tap();
+            assert.equal(await page.locator('.hero-card__image[href]').count(), fallback ? 10 : 0);
+            await page.locator('#foldHeroes > summary .sectitle').tap();
             await page.waitForFunction(() => document.querySelector('.hero-card__image[href]'));
             if (!fallback) {
               await page.locator('[data-hero="hilde"]').scrollIntoViewIfNeeded();
@@ -281,7 +281,7 @@ for (const engine of ['chromium', 'webkit']) {
                   .querySelector('[data-hero="hilde"] .hero-card__image')
                   .hasAttribute('href'),
               );
-              await page.locator('#foldHeroes > summary').tap();
+              await page.locator('#foldHeroes > summary .sectitle').tap();
               await page.waitForFunction(
                 () => document.querySelectorAll('.herocard.is-visible').length === 0,
               );

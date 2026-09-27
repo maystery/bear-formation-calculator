@@ -6,7 +6,8 @@ window.BearFormationView = Object.freeze({
    * @returns {import('./types').FormationView} */
   create({ heroes, capacity, feedback }) {
     const $ = (id) => document.getElementById(id);
-    const { calculateFormation, MAX_MARCHES, checkMarch } = BearCalcCore;
+    const { calculateFormation, MAX_MARCHES, checkMarch, formatAmount, formatFull, trimDecimals } =
+      BearCalcCore;
     const { HEROES } = BearHeroUI;
     const { idsFor, parseField, validationMessage } = BearSettings;
     const MAIN_AMOUNT_IDS = idsFor('amount', 'formation');
@@ -47,12 +48,11 @@ window.BearFormationView = Object.freeze({
       return { values, invalid };
     }
 
-    const trim = (n) => n.toFixed(2).replace(/\.?0+$/, '');
-    const fmt = (x) => {
-      x = Math.round(x);
-      if (UNIT === 'full' || Math.abs(x) < 1000) return x.toLocaleString('en-US');
-      if (Math.abs(x) >= 1e6) return trim(x / 1e6) + 'm';
-      return trim(x / 1e3) + 'k';
+    const fmt = (x) => formatAmount(x, UNIT);
+    const TROOP_META = {
+      inf: { label: 'Infantry', tile: 'tileInf' },
+      cav: { label: 'Cavalry', tile: 'tileCav' },
+      arc: { label: 'Archers', tile: 'tileArc' },
     };
     function leaderCell(key) {
       const hero = HEROES[key || 'none'];
@@ -72,7 +72,7 @@ window.BearFormationView = Object.freeze({
         used > cap ? 'is-over' : used <= 0 ? 'is-empty' : hasRoom ? 'has-room' : 'is-full';
       return (
         `<div class="capacity-use ${state}">` +
-        `<div>${fmt(used)} / ${fmt(cap)} · ${trim(percent)}%</div>` +
+        `<div>${fmt(used)} / ${fmt(cap)} · ${trimDecimals(percent)}%</div>` +
         `<div class="bar" aria-hidden="true"><i style="width:${Math.min(100, percent).toFixed(2)}%"></i></div></div>`
       );
     }
@@ -98,51 +98,219 @@ window.BearFormationView = Object.freeze({
       $('checkRows').innerHTML = '';
       $('checkError').textContent = '';
       $('verdict').innerHTML = '';
+      $('resultSum').textContent = 'Needs valid formation inputs';
+      $('checkSum').textContent = 'Needs valid formation inputs';
       if (clearCapacity) {
         setVal('tCap', '–');
         $('capBreak').textContent = '';
         $('capBreakLabels').textContent = '';
         setVal('tNoCap', '–');
-        $('capSum').textContent = '';
       }
     }
 
-    function calc() {
-      UNIT = $('unit').value;
+    function renderMarchControls(n, strategy) {
       syncSliders();
-      const n = parseField('n', $('n').value).value;
-      const strategy = fillStrategy();
-
       $('nOut').textContent = n;
       $('fillStrategyHint').textContent =
         strategy === 'sequential'
           ? 'Max March 1, then March 2, and continue in order.'
           : 'Spread available troops as evenly as capacity allows.';
-      const order = heroes.leaderOrder();
-      heroes.sync(order, n);
+    }
 
-      const parsedRatios = readFields(RATIO_IDS);
-      const parsedMain = readFields(MAIN_AMOUNT_IDS);
+    function renderCapacityInputs(parsedMain) {
       [
         ['squad', 'squadCapacityDisplay'],
         ['cap', 'baseCapacityDisplay'],
       ].forEach(([inputId, outputId]) => {
         const invalid = parsedMain.invalid.includes(inputId);
-        $(outputId).textContent = invalid ? 'Invalid value' : fullFmt(parsedMain.values[inputId]);
+        $(outputId).textContent = invalid
+          ? 'Invalid value'
+          : formatFull(parsedMain.values[inputId]);
         if (invalid) {
           $('capacityEdit').open = true;
           $('foldCap').open = true;
         }
       });
-      const capacityBase = parsedMain.invalid.includes('cap') ? null : parsedMain.values.cap;
-      const capacityBuffs = capacity.sync(capacityBase);
-      const summaryRatio = parsedRatios.invalid.length
+    }
+
+    // Skip unchanged text so recalculations leave untouched sections without mutations.
+    function setText(id, text) {
+      const el = $(id);
+      if (el.textContent !== text) el.textContent = text;
+    }
+
+    // Collapsed-section summaries for the input stages. They are written before
+    // validation so invalid inputs replace stale values.
+    function renderInputSummaries({ parsedRatios, parsedMain, n, strategy, baseCapacity, buffs }) {
+      const marches = `${n} march${n === 1 ? '' : 'es'}`;
+      const ratioLabel = parsedRatios.invalid.length
         ? 'needs attention'
         : [parsedRatios.values.ri, parsedRatios.values.rc, parsedRatios.values.ra]
-            .map(trim)
+            .map(trimDecimals)
             .join(' / ');
-      $('setupSummary').textContent =
-        `Formation ${summaryRatio} · ${n} march${n === 1 ? '' : 'es'}`;
+      setText('setupSummary', `Formation ${ratioLabel} · ${marches}`);
+      const formationInvalid =
+        parsedRatios.invalid.length ||
+        parsedRatios.values.ri + parsedRatios.values.rc + parsedRatios.values.ra <= 0 ||
+        ['si', 'sc', 'sa'].some((id) => parsedMain.invalid.includes(id));
+      setText(
+        'formationSum',
+        `${formationInvalid ? 'Inputs need attention' : ratioLabel} · ${marches} · ` +
+          (strategy === 'sequential' ? 'Fill in order' : 'Balance marches'),
+      );
+
+      const marchCap = baseCapacity === null ? null : baseCapacity === 0 ? Infinity : buffs.total;
+      const capLabel = (value) =>
+        value === undefined || value === null
+          ? 'Invalid'
+          : !value || !Number.isFinite(value)
+            ? '∞'
+            : fmt(value);
+      setText('capSum', `Squad ${capLabel(parsedMain.values.squad)} · March ${capLabel(marchCap)}`);
+
+      // Buffs only add to a finite base capacity; with none (0) or an invalid one they do nothing.
+      const activeBonus = buffs.valoraBonus + buffs.appliedBisonBonus;
+      setText(
+        'buffSum',
+        (baseCapacity === null
+          ? 'Invalid base capacity'
+          : baseCapacity === 0
+            ? `Bonus unused · ${capLabel(marchCap)} march cap`
+            : (activeBonus ? `+${fmt(activeBonus)} bonus · ` : 'No active capacity buffs · ') +
+              `${capLabel(marchCap)} march cap`) +
+          (buffs.isBisonBuffEnabled ? '' : ' · Bison inactive'),
+      );
+    }
+
+    function ratioWarning(sum) {
+      if (sum <= 0) return 'Set a ratio to split anything.';
+      // Decimal weights can add up to 99.99999999999999; compare what was typed.
+      const shown = Number(sum.toFixed(6));
+      return shown === 100 ? '' : `Sums to ${shown}% — normalising.`;
+    }
+
+    function renderCapacityTiles({ heroCapacity, squadCapacityLimit }, baseCapacity, buffs) {
+      const limited = Number.isFinite(heroCapacity);
+      setVal('tCap', limited ? fmt(heroCapacity) : '∞');
+      $('capBreak').textContent = limited
+        ? `${fmt(baseCapacity)} + ${fmt(buffs.valoraBonus)}` +
+          (buffs.isBisonBuffEnabled ? ` + ${fmt(buffs.bisonRecordedBonus)}` : '')
+        : '';
+      $('capBreakLabels').textContent = limited
+        ? 'Base + Valora' + (buffs.isBisonBuffEnabled ? ' + Bison' : '')
+        : 'No base capacity limit';
+      setVal('tNoCap', Number.isFinite(squadCapacityLimit) ? fmt(squadCapacityLimit) : '∞');
+    }
+
+    function renderTotals({ troops, totalTroops }) {
+      setVal('tTotal', fmt(totalTroops));
+      const availableTroops = troops.inf + troops.cav + troops.arc;
+      $('totalUsage').textContent =
+        availableTroops > 0
+          ? `${trimDecimals((totalTroops / availableTroops) * 100)}% of available troops`
+          : 'No available troops';
+    }
+
+    // Highlight every constraint that prevents one more whole troop from being
+    // deployed, but only highlight capacity sources used by an active march.
+    function renderBottleneck({ bottlenecks, capacityUsage, totalTroops }) {
+      clearLimits();
+      bottlenecks.troops.forEach((x) => $(TROOP_META[x.key].tile).classList.add('limit'));
+      if (bottlenecks.capacity) {
+        if (capacityUsage.hero) $('tileCap').classList.add('limit');
+        if (capacityUsage.squad) $('tileSquad').classList.add('limit');
+      }
+
+      const troopLabels = bottlenecks.troops.map((x) => TROOP_META[x.key].label);
+      const labels = [...troopLabels];
+      if (bottlenecks.capacity) labels.push('Deployment capacity');
+      $('resultSum').textContent =
+        `${fmt(totalTroops)} used · ${labels.length ? labels.join(' + ') + ' bottleneck' : 'No bottleneck'}`;
+      setVal('tLim', labels.length === 1 ? labels[0] : 'Multiple');
+
+      if (bottlenecks.troops.length && bottlenecks.capacity) {
+        $('tileLim').classList.add('bn-mixed');
+        $('limHint').textContent = troopLabels.join(' + ') + ' + capacity';
+      } else if (bottlenecks.troops.length) {
+        $('tileLim').classList.add('bn-troop');
+        $('limHint').textContent =
+          troopLabels.length === 1
+            ? 'Out of ' + troopLabels[0].toLowerCase()
+            : troopLabels.join(' + ');
+      } else if (bottlenecks.capacity) {
+        $('tileLim').classList.add('bn-cap');
+        setVal('tLim', 'Capacity reached');
+        $('limHint').textContent = 'One or more marches are at capacity.';
+      } else {
+        setVal('tLim', '—');
+        $('limHint').textContent = '';
+      }
+    }
+
+    function renderMarchTable(result) {
+      const { marchCount, leaders, rows, marchTotals, marchCaps, totals, totalTroops } = result;
+      let h =
+        '<thead><tr class="head"><th scope="col">March</th><th scope="col">Leader</th>' +
+        '<th scope="col">Infantry</th><th scope="col">Cavalry</th><th scope="col">Archers</th>' +
+        '<th scope="col">Total</th><th scope="col">Capacity used</th></tr></thead><tbody>';
+      for (let i = 0; i < marchCount; i++) {
+        const x = rows[i];
+        h += row(
+          i + 1,
+          leaderCell(leaders[i]),
+          fmt(x.inf),
+          fmt(x.cav),
+          fmt(x.arc),
+          fmt(marchTotals[i]),
+          capacityUse(marchTotals[i], marchCaps[i]),
+          leaders[i] ? 'line' : 'line no-hero-row',
+        );
+      }
+      h +=
+        '</tbody><tfoot>' +
+        row(
+          'Total',
+          '',
+          fmt(totals.inf),
+          fmt(totals.cav),
+          fmt(totals.arc),
+          fmt(totalTroops),
+          capacityUse(totalTroops, result.totalCapacity),
+          'sumline',
+        ) +
+        '</tfoot>';
+      $('rows').innerHTML = h;
+    }
+
+    function renderLeftover({ troops, totals }) {
+      $('leftoverValues').innerHTML = [
+        ['inf', 'infantry'],
+        ['cav', 'cavalry'],
+        ['arc', 'archers'],
+      ]
+        .map(
+          ([key, label]) =>
+            `<span class="remaining-troop"><i class="troop-icon troop-icon--${label}" aria-hidden="true"></i><span>${fmt(troops[key] - totals[key])} ${label}</span></span>`,
+        )
+        .join('');
+      $('leftover').hidden = false;
+    }
+
+    function calc() {
+      UNIT = $('unit').value;
+      const n = parseField('n', $('n').value).value;
+      const strategy = fillStrategy();
+      renderMarchControls(n, strategy);
+      const order = heroes.leaderOrder();
+      heroes.sync(order, n);
+
+      const parsedRatios = readFields(RATIO_IDS);
+      const parsedMain = readFields(MAIN_AMOUNT_IDS);
+      renderCapacityInputs(parsedMain);
+      const baseCapacity = parsedMain.invalid.includes('cap') ? null : parsedMain.values.cap;
+      const buffs = capacity.sync(baseCapacity);
+      renderInputSummaries({ parsedRatios, parsedMain, n, strategy, baseCapacity, buffs });
+
       const invalidCount = parsedRatios.invalid.length + parsedMain.invalid.length;
       if (invalidCount) {
         $('warn').textContent = parsedRatios.invalid.length
@@ -169,27 +337,8 @@ window.BearFormationView = Object.freeze({
         bisonEnabled: capacity.enabled,
         strategy,
       });
-      const { heroCapacity: capHero, squadCapacityLimit: capNone, ratioSum: sum } = result;
-      const baseCap = V.cap;
-      setVal('tCap', isFinite(capHero) ? fmt(capHero) : '∞');
-      $('capBreak').textContent = isFinite(capHero)
-        ? `${fmt(baseCap)} + ${fmt(capacityBuffs.valoraBonus)}` +
-          (capacity.enabled ? ` + ${fmt(capacityBuffs.bisonRecordedBonus)}` : '')
-        : '';
-      $('capBreakLabels').textContent = isFinite(capHero)
-        ? 'Base + Valora' + (capacity.enabled ? ' + Bison' : '')
-        : 'No base capacity limit';
-      setVal('tNoCap', isFinite(capNone) ? fmt(capNone) : '∞');
-      $('capSum').textContent =
-        `squad ${isFinite(capNone) ? fmt(capNone) : '∞'}` +
-        ` · march ${isFinite(capHero) ? fmt(capHero) : '∞'}`;
-
-      $('warn').textContent =
-        sum <= 0
-          ? 'Set a ratio to split anything.'
-          : sum === 100
-            ? ''
-            : `Sums to ${sum}% — normalising.`;
+      renderCapacityTiles(result, V.cap, buffs);
+      $('warn').textContent = ratioWarning(result.ratioSum);
       // without a ratio there is nothing to show — blank it rather than leaving
       // the previous run's numbers sitting there looking valid
       if (!result.valid) {
@@ -198,111 +347,14 @@ window.BearFormationView = Object.freeze({
         return false;
       }
       $('copySetup').disabled = false;
-      const {
-        ratio,
-        troops,
-        marchCaps,
-        totalCapacity,
-        capacityUsage,
-        bottlenecks,
-        marchTotals,
-        rows,
-        totals,
-        totalTroops,
-      } = result;
-      const troopMeta = {
-        inf: { label: 'Infantry', tile: 'tileInf' },
-        cav: { label: 'Cavalry', tile: 'tileCav' },
-        arc: { label: 'Archers', tile: 'tileArc' },
-      };
-
-      setVal('tTotal', fmt(totalTroops));
-      const availableTroops = troops.inf + troops.cav + troops.arc;
-      $('totalUsage').textContent =
-        availableTroops > 0
-          ? `${trim((totalTroops / availableTroops) * 100)}% of available troops`
-          : 'No available troops';
-
-      // Highlight every constraint that prevents one more whole troop from being
-      // deployed, but only highlight capacity sources used by an active march.
-      clearLimits();
-      bottlenecks.troops.forEach((x) => $(troopMeta[x.key].tile).classList.add('limit'));
-      if (bottlenecks.capacity) {
-        if (capacityUsage.hero) $('tileCap').classList.add('limit');
-        if (capacityUsage.squad) $('tileSquad').classList.add('limit');
-      }
-
-      const troopLabels = bottlenecks.troops.map((x) => troopMeta[x.key].label);
-      const labels = [...troopLabels];
-      if (bottlenecks.capacity) labels.push('Deployment capacity');
-      setVal('tLim', labels.length === 1 ? labels[0] : 'Multiple');
-
-      if (bottlenecks.troops.length && bottlenecks.capacity) {
-        $('tileLim').classList.add('bn-mixed');
-        $('limHint').textContent = troopLabels.join(' + ') + ' + capacity';
-      } else if (bottlenecks.troops.length) {
-        $('tileLim').classList.add('bn-troop');
-        $('limHint').textContent =
-          troopLabels.length === 1
-            ? 'Out of ' + troopLabels[0].toLowerCase()
-            : troopLabels.join(' + ');
-      } else if (bottlenecks.capacity) {
-        $('tileLim').classList.add('bn-cap');
-        setVal('tLim', 'Capacity reached');
-        $('limHint').textContent = 'One or more marches are at capacity.';
-      } else {
-        setVal('tLim', '—');
-        $('limHint').textContent = '';
-      }
-
-      let h =
-        '<thead><tr class="head"><th scope="col">March</th><th scope="col">Leader</th>' +
-        '<th scope="col">Infantry</th><th scope="col">Cavalry</th><th scope="col">Archers</th>' +
-        '<th scope="col">Total</th><th scope="col">Capacity used</th></tr></thead><tbody>';
-      for (let i = 0; i < n; i++) {
-        const x = rows[i];
-        h += row(
-          i + 1,
-          leaderCell(order[i]),
-          fmt(x.inf),
-          fmt(x.cav),
-          fmt(x.arc),
-          fmt(marchTotals[i]),
-          capacityUse(marchTotals[i], marchCaps[i]),
-          order[i] ? 'line' : 'line no-hero-row',
-        );
-      }
-      h +=
-        '</tbody><tfoot>' +
-        row(
-          'Total',
-          '',
-          fmt(totals.inf),
-          fmt(totals.cav),
-          fmt(totals.arc),
-          fmt(totalTroops),
-          capacityUse(totalTroops, totalCapacity),
-          'sumline',
-        ) +
-        '</tfoot>';
-      $('rows').innerHTML = h;
-
-      $('leftoverValues').innerHTML = [
-        ['inf', 'infantry'],
-        ['cav', 'cavalry'],
-        ['arc', 'archers'],
-      ]
-        .map(
-          ([key, label]) =>
-            `<span class="remaining-troop"><i class="troop-icon troop-icon--${label}" aria-hidden="true"></i><span>${fmt(troops[key] - totals[key])} ${label}</span></span>`,
-        )
-        .join('');
-      $('leftover').hidden = false;
+      renderTotals(result);
+      renderBottleneck(result);
+      renderMarchTable(result);
+      renderLeftover(result);
 
       lastResult = result;
       $('copyFormation').disabled = false;
-
-      check(ratio);
+      check(result.ratio);
       return true;
     }
 
@@ -311,6 +363,7 @@ window.BearFormationView = Object.freeze({
       const { valid: tolValid, value: tol } = parseField('tol', $('tol').value);
       setFieldValidity('tol', tolValid, validationMessage('tol'));
       if (parsedCheck.invalid.length || !tolValid || !Number.isFinite(tol)) {
+        $('checkSum').textContent = 'March inputs need attention';
         $('checkError').textContent =
           'Fix the highlighted number field' +
           (parsedCheck.invalid.length + (!tolValid ? 1 : 0) > 1 ? 's' : '') +
@@ -324,6 +377,7 @@ window.BearFormationView = Object.freeze({
       const C = { inf: V.ci, cav: V.cc, arc: V.ca };
       const result = checkMarch(C, r, tol);
       if (!result) {
+        $('checkSum').textContent = 'No troops entered';
         $('checkRows').innerHTML = '';
         $('verdict').innerHTML = '';
         return;
@@ -339,7 +393,8 @@ window.BearFormationView = Object.freeze({
         adjustment,
         matches: ok,
       } = result;
-      const NAMES = { inf: 'Infantry', cav: 'Cavalry', arc: 'Archers' };
+      $('checkSum').textContent =
+        `${fmt(total)} troops · ${ok ? 'Matches the ratio' : 'Ratio needs adjustment'}`;
 
       let h =
         '<thead><tr class="head"><th scope="col">Type</th><th scope="col">Actual %</th>' +
@@ -347,9 +402,9 @@ window.BearFormationView = Object.freeze({
       for (const k of ['inf', 'cav', 'arc']) {
         const off = outside[k];
         const sign = delta[k] >= 0 ? '+' : '−';
-        const type = NAMES[k].toLowerCase();
+        const type = TROOP_META[k].label.toLowerCase();
         h +=
-          `<tr class="line check-troop--${type}"><th scope="row"><span class="check-type"><i class="troop-icon troop-icon--${type}" aria-hidden="true"></i>${NAMES[k]}</span></th>` +
+          `<tr class="line check-troop--${type}"><th scope="row"><span class="check-type"><i class="troop-icon troop-icon--${type}" aria-hidden="true"></i>${TROOP_META[k].label}</span></th>` +
           `<td><strong>${actual[k].toFixed(2)}%</strong><span class="check-composition-bar" aria-hidden="true"><span style="width:${Math.min(100, Math.max(0, actual[k]))}%"></span></span></td>` +
           `<td>${(r[k] * 100).toFixed(2)}%</td>` +
           `<td class="check-difference ${off ? 'is-outside' : 'is-within'}">${sign}${Math.abs(delta[k]).toFixed(2)}</td>` +
@@ -368,34 +423,34 @@ window.BearFormationView = Object.freeze({
         const diff = adjustment;
         $('verdict').innerHTML =
           `<div class="verdict bad"><div><div class="head2">Ratio needs adjustment</div>` +
-          `${NAMES[worstKey]} ${worstKey === 'arc' ? 'are' : 'is'} ${fmt(diff)} ${dir} target ` +
+          `${TROOP_META[worstKey].label} ${worstKey === 'arc' ? 'are' : 'is'} ${fmt(diff)} ${dir} target ` +
           `(${worst > 0 ? '+' : '−'}${Math.abs(worst).toFixed(2)} pp). ` +
           `Target composition at ${fmt(total)} troops: ${fmt(ideal.inf)} Infantry · ${fmt(ideal.cav)} Cavalry · ${fmt(ideal.arc)} Archers.</div>` +
           `<div class="check-total"><span>Total troops</span><strong>${fmt(total)}</strong></div></div>`;
       }
     }
 
-    const fullFmt = (value) => Math.round(value).toLocaleString('en-US');
-
     function formationText() {
       if (!lastResult) return '';
       const { ratio, troops, leaders, strategy, marchTotals, rows, totals, totalTroops } =
         lastResult;
-      const ratioLabel = [ratio.inf, ratio.cav, ratio.arc].map((x) => trim(x * 100)).join(' / ');
+      const ratioLabel = [ratio.inf, ratio.cav, ratio.arc]
+        .map((x) => trimDecimals(x * 100))
+        .join(' / ');
       const strategyLabel = strategy === 'sequential' ? 'Fill in order' : 'Balance marches';
       const lines = [`Bear formation · ${ratioLabel}`, `Filling: ${strategyLabel}`, ''];
       rows.forEach((march, i) => {
         const leader = HEROES[leaders[i] || 'none'].name;
         lines.push(
-          `March ${i + 1} · ${leader}: ${fullFmt(march.inf)} infantry · ${fullFmt(march.cav)} cavalry · ${fullFmt(march.arc)} archers · ${fullFmt(marchTotals[i])} total`,
+          `March ${i + 1} · ${leader}: ${formatFull(march.inf)} infantry · ${formatFull(march.cav)} cavalry · ${formatFull(march.arc)} archers · ${formatFull(marchTotals[i])} total`,
         );
       });
       lines.push(
         '',
-        `Total: ${fullFmt(totals.inf)} infantry · ${fullFmt(totals.cav)} cavalry · ${fullFmt(totals.arc)} archers · ${fullFmt(totalTroops)} troops`,
+        `Total: ${formatFull(totals.inf)} infantry · ${formatFull(totals.cav)} cavalry · ${formatFull(totals.arc)} archers · ${formatFull(totalTroops)} troops`,
       );
       lines.push(
-        `Left at home: ${fullFmt(troops.inf - totals.inf)} infantry · ${fullFmt(troops.cav - totals.cav)} cavalry · ${fullFmt(troops.arc - totals.arc)} archers`,
+        `Left at home: ${formatFull(troops.inf - totals.inf)} infantry · ${formatFull(troops.cav - totals.cav)} cavalry · ${formatFull(troops.arc - totals.arc)} archers`,
       );
       return lines.join('\n');
     }

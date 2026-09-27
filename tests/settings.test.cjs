@@ -9,6 +9,8 @@ const saved = {
   cap: 139310,
   amaOn: false,
   chenkoOn: true,
+  lunaOn: true,
+  selectedSeason: '8',
   bisonBuffEnabled: true,
   bisonSkill: '4',
   valoraSkill: '8',
@@ -17,6 +19,10 @@ const saved = {
   unit: 'full',
   theme: 'dark',
   foldHeroes: false,
+  foldFormation: false,
+  foldBuffs: false,
+  foldResult: false,
+  foldCheck: false,
   ci: 'bad draft',
 };
 
@@ -28,11 +34,16 @@ test('existing saved settings keep their types, drafts and independent preferenc
       si: { value: 1 },
       cap: null,
       amaOn: 'false',
+      selectedSeason: '9',
       bisonBuffEnabled: 1,
       unit: 'invalid',
       fillStrategy: 'invalid',
       theme: 'invalid',
       foldCap: 'true',
+      foldFormation: 'false',
+      foldBuffs: 0,
+      foldResult: 1,
+      foldCheck: 'false',
       unknown: 'value',
     }),
     {},
@@ -45,12 +56,22 @@ test('shared setups round-trip formation fields and exclude local preferences an
   assert.equal(url.searchParams.get('setup'), '1');
   assert.equal(url.searchParams.get('bison'), '1');
   assert.equal(url.searchParams.get('amaOn'), '0');
+  assert.equal(url.searchParams.get('lunaOn'), '1');
+  assert.equal(url.searchParams.get('selectedSeason'), '8');
   assert.equal(url.searchParams.has('theme'), false);
   assert.equal(url.searchParams.has('foldHeroes'), false);
+  assert.equal(url.searchParams.has('foldFormation'), false);
+  assert.equal(url.searchParams.has('foldBuffs'), false);
+  assert.equal(url.searchParams.has('foldResult'), false);
+  assert.equal(url.searchParams.has('foldCheck'), false);
   assert.equal(url.searchParams.has('ci'), false);
   const formation = { ...saved };
   delete formation.theme;
   delete formation.foldHeroes;
+  delete formation.foldFormation;
+  delete formation.foldBuffs;
+  delete formation.foldResult;
+  delete formation.foldCheck;
   delete formation.ci;
   assert.deepEqual(settings.sharedSettings(url.search), { ...formation, cap: '139310' });
   assert.deepEqual(settings.sharedSettings('?si=5'), {});
@@ -58,17 +79,23 @@ test('shared setups round-trip formation fields and exclude local preferences an
 
 test('partial shared setups override only recognized correctly typed fields', () => {
   const shared = settings.sharedSettings('?setup=1&si=900k&bison=0&amaOn=no&theme=light&unit=no');
-  assert.deepEqual(shared, { si: '900k', bisonBuffEnabled: false });
+  assert.deepEqual(shared, { si: '900k', bisonBuffEnabled: false, selectedSeason: '8' });
   const merged = { ...settings.decodeSettings(saved), ...shared };
   assert.equal(merged.theme, 'dark');
   assert.equal(merged.si, '900k');
   assert.equal(merged.amaOn, false);
   assert.equal(merged.bisonSkill, '4');
+  const legacy = { ...settings.decodeSettings({ ...saved, selectedSeason: '4' }), ...shared };
+  assert.equal(legacy.selectedSeason, '8');
+  assert.equal(settings.sharedSettings('?setup=1&selectedSeason=3').selectedSeason, '3');
+  assert.deepEqual(settings.sharedSettings('?setup=1&unknown=1'), {});
 });
 
 test('reset removes current and legacy setup parameters while preserving unrelated URL data', () => {
   const url = new URL(
-    settings.resetUrl('https://example.test/?setup=1&bison=1&sav=10&si=5&campaign=a#help'),
+    settings.resetUrl(
+      'https://example.test/?setup=1&bison=1&sav=10&si=5&lunaOn=1&selectedSeason=4&campaign=a#help',
+    ),
   );
   assert.equal(url.search, '?campaign=a');
   assert.equal(url.hash, '#help');

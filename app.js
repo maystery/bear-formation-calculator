@@ -79,10 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
       .forEach((el) => el.addEventListener(inputEvent(field), update));
   });
 
+  // The preset's values live next to its label and title in the markup.
   $('the').addEventListener('click', () => {
-    $('ri').value = 10;
-    $('rc').value = 10;
-    $('ra').value = 80;
+    const [ri, rc, ra] = $('the').dataset.ratioPreset.split(' ');
+    Object.entries({ ri, rc, ra }).forEach(([id, value]) => ($(id).value = value));
     update();
   });
 

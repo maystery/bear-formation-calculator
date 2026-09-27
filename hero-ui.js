@@ -13,6 +13,7 @@
     5: 'assets/seasons/s5.webp',
     6: 'assets/seasons/s6.webp',
     7: 'assets/seasons/s7.webp',
+    8: 'assets/seasons/s8.webp',
   });
 
   const STAT_TYPES = Object.freeze({
@@ -211,6 +212,39 @@
         height: 292,
       },
     },
+    luna: {
+      name: 'Luna',
+      portrait: 'assets/heroes/luna.webp',
+      avatar: 'assets/heroes/profile/luna.webp',
+      inputId: 'lunaOn',
+      season: 8,
+      deployCap: 'Hero deploy cap',
+      expeditionSkill: {
+        name: 'Driving Light',
+        type: 'Passive',
+        description:
+          "Luna's lunar light drives away wickedness, increasing total Squad's Attack by up to 25%.",
+        recommendedLevel: 5,
+        effects: [{ stat: 'attack', values: [5, 10, 15, 20, 25] }],
+      },
+      variant: 'gold',
+      defaultEnabled: false,
+      art: {
+        strength: 'strong',
+        breakout: {
+          start: 22,
+          end: 285,
+          height: 34,
+          shoulder: 34,
+          unrestricted: false,
+          allowLeft: true,
+        },
+        x: -12,
+        y: -26,
+        width: 260,
+        height: 320,
+      },
+    },
     vivian: {
       name: 'Vivian',
       portrait: 'assets/heroes/vivian.webp',
@@ -235,6 +269,8 @@
           shoulder: 34,
           unrestricted: false,
           allowLeft: true,
+          // The rifle muzzle breaks out beside the bottom-left corner.
+          leftBottom: 256,
         },
         x: -14,
         y: -26,
@@ -344,9 +380,18 @@
 
   // This remains the single source of truth for march assignment priority.
   const HERO_SLOTS = Object.freeze(
-    ['weeWoo', 'amadeus', 'chenko', 'yeonwoo', 'amane', 'margot', 'vivian', 'ava', 'hilde'].map(
-      (key) => Object.freeze({ key, id: HEROES[key].inputId }),
-    ),
+    [
+      'weeWoo',
+      'amadeus',
+      'chenko',
+      'yeonwoo',
+      'amane',
+      'margot',
+      'luna',
+      'vivian',
+      'ava',
+      'hilde',
+    ].map((key) => Object.freeze({ key, id: HEROES[key].inputId })),
   );
 
   function seasonBadge(season) {
@@ -356,6 +401,13 @@
       `<span class="season-badge" role="img" aria-label="Season ${season}" title="Season ${season}">` +
       `<img src="${src}" alt="" aria-hidden="true"></span>`
     );
+  }
+
+  /** Heroes remain available after their release season.
+   * @param {{season: number}} hero
+   * @param {import('./types').Season} selectedSeason */
+  function isHeroAvailableForSeason(hero, selectedSeason) {
+    return hero.season <= selectedSeason;
   }
 
   function statType(stat, interactive = false, attributes = '') {
@@ -441,7 +493,10 @@
         const effectMarkup =
           `<span class="hero-skill-effect">` +
           `<span class="hero-skill-effect__title">${statType(effect.stat)}</span>` +
-          `<span class="hero-skill-description">${type.description}</span>` +
+          // A skill-wide description is shown once above the effects instead.
+          (skill.description
+            ? ''
+            : `<span class="hero-skill-description">${type.description}</span>`) +
           `<span class="skill-levels">${skillLevelRows(
             effect,
             skill.recommendedLevel,
@@ -452,6 +507,10 @@
           `<span class="hero-skill-popover hero-skill-popover--${hero.variant}" id="${popoverId}" ` +
           `data-skill-owner="${key}" data-stat="${effect.stat}" role="tooltip" aria-hidden="true">` +
           `<strong class="hero-skill-popover__name">${skill.name}</strong>` +
+          (skill.type ? `<span class="hero-skill-type">${skill.type}</span>` : '') +
+          (skill.description
+            ? `<span class="hero-skill-description">${skill.description}</span>`
+            : '') +
           `<span class="hero-skill-popover__recommendation"><img src="${RECOMMENDED_LEVEL_ICON}" alt="">` +
           `<span>Recommended: <strong>Lv. ${skill.recommendedLevel}</strong></span></span>` +
           `<span class="hero-skill-effects">${effectMarkup}</span></span>`
@@ -491,11 +550,16 @@
     shoulder,
     unrestricted = false,
     allowLeft = false,
+    leftBottom,
   }) {
     const { width: W, height: H, radius: R, breakoutCanvas, leftBreakoutCanvas } = HERO_ARTBOARD;
+    // By default the side opening stops where the bottom-left corner starts to curve, so
+    // art never spills past the rounded corner; `leftBottom` lowers it for art that
+    // deliberately breaks out beside the corner.
+    const openingBottom = leftBottom ?? H - R;
     const leftOpening = allowLeft
       ? ` M ${-leftBreakoutCanvas} ${-breakoutCanvas} L 3 ${-breakoutCanvas} ` +
-        `L 3 ${H} L ${-leftBreakoutCanvas} ${H} Z`
+        `L 3 ${openingBottom} L ${-leftBreakoutCanvas} ${openingBottom} Z`
       : '';
     if (unrestricted) {
       return (
@@ -525,12 +589,12 @@
     const clipId = `hero-art-clip-${key}`;
     const describedBy = [`role-${key}`, `pill-${key}`].join(' ');
     const viewBoxHeight = HERO_ARTBOARD.height + HERO_ARTBOARD.breakoutCanvas;
-    const viewBoxWidth = HERO_ARTBOARD.width + HERO_ARTBOARD.leftBreakoutCanvas;
     const portraitClipPath = makePortraitClipPath(art.breakout);
+    // Cards reserve space up to the grid's most skill rows (--hero-grid-skill-rows).
     return (
       `<div class="hero-card-shell" data-breakout="${art.strength}">` +
       `<label class="herocard hero-card--${hero.variant}${hero.nudgeSkillName ? ' hero-card--nudge-skill' : ''}" ` +
-      `for="${id}" data-hero="${key}">` +
+      `for="${id}" data-hero="${key}" style="--hero-skill-rows: ${hero.expeditionSkill.effects.length}">` +
       `<input type="checkbox" id="${id}" class="sr-only" ${hero.defaultEnabled ? 'checked' : ''} ` +
       `aria-label="Include ${hero.name} as a hero leader" aria-describedby="${describedBy}">` +
       `<span class="hero-card__surface" aria-hidden="true">` +
@@ -538,8 +602,11 @@
       `<span class="hero-card__pattern"></span>` +
       `<span class="hero-card__art-glow"></span></span>` +
       `<span class="hero-card__border" aria-hidden="true"></span>` +
-      `<svg class="hero-card__art" viewBox="-${HERO_ARTBOARD.leftBreakoutCanvas} -${HERO_ARTBOARD.breakoutCanvas} ${viewBoxWidth} ${viewBoxHeight}" ` +
-      `preserveAspectRatio="none" aria-hidden="true" focusable="false">` +
+      // The box spans the card plus the top breakout canvas; `slice` scales the artboard by
+      // height, and left breakout art paints outside the box (overflow: visible), so the
+      // box never adds horizontal scroll.
+      `<svg class="hero-card__art" viewBox="0 -${HERO_ARTBOARD.breakoutCanvas} ${HERO_ARTBOARD.width} ${viewBoxHeight}" ` +
+      `preserveAspectRatio="xMinYMax slice" aria-hidden="true" focusable="false">` +
       `<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">` +
       `<path class="hero-card__clip-shape" d="${portraitClipPath}"></path>` +
       `</clipPath></defs>` +
@@ -591,6 +658,7 @@
     HEROES,
     HERO_SLOTS,
     seasonBadge,
+    isHeroAvailableForSeason,
     statType,
     skillLevelRows,
     skillDetails,

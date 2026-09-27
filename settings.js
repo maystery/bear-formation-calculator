@@ -11,6 +11,7 @@
   const STORE_KEY = 'bearcalc.v1';
   const THEMES = Object.freeze(['auto', 'light', 'dark']);
   const FILL_STRATEGIES = Object.freeze(['equal', 'sequential']);
+  const LATEST_SEASON = Object.keys(heroes.SEASON_BADGE_BY_SEASON).at(-1);
   /** @param {string} id
    * @param {import('./types').FieldDefinition['scope']} [scope]
    * @returns {Pick<import('./types').FieldDefinition, 'id' | 'kind' | 'scope'>} */
@@ -26,6 +27,12 @@
       { id: 'valoraSkill', kind: 'skill', skill: 'valora', scope: 'formation' },
       { id: 'bisonSkill', kind: 'skill', skill: 'bison', scope: 'formation' },
       ...heroes.HERO_SLOTS.map(({ id }) => ({ id, kind: 'checkbox', scope: 'formation' })),
+      {
+        id: 'selectedSeason',
+        kind: 'select',
+        values: Object.keys(heroes.SEASON_BADGE_BY_SEASON),
+        scope: 'formation',
+      },
       { id: 'unit', kind: 'select', values: ['k', 'full'], scope: 'formation' },
       ...['ci', 'cc', 'ca'].map((id) => amount(id, 'check')),
       { id: 'tol', kind: 'tolerance', scope: 'check' },
@@ -37,7 +44,13 @@
         kind: 'toggle',
         scope: 'formation',
       },
-      ...['foldCap', 'foldHeroes'].map((id) => ({ id, kind: 'fold', scope: 'preference' })),
+      ...['foldFormation', 'foldCap', 'foldBuffs', 'foldHeroes', 'foldResult', 'foldCheck'].map(
+        (id) => ({
+          id,
+          kind: 'fold',
+          scope: 'preference',
+        }),
+      ),
       { id: 'theme', kind: 'theme', values: THEMES, scope: 'preference' },
     ].map((field) =>
       Object.freeze({
@@ -146,7 +159,11 @@
    * @returns {import('./types').SavedSettings} */
   function sharedSettings(search) {
     const params = new URLSearchParams(search);
-    return params.get('setup') === '1' ? decodeSettings(Object.fromEntries(params), 'url') : {};
+    if (params.get('setup') !== '1') return {};
+    const settings = decodeSettings(Object.fromEntries(params), 'url');
+    if (!Object.keys(settings).length) return settings;
+    // Links made before seasons existed assumed the full roster, not the recipient's season.
+    return { selectedSeason: LATEST_SEASON, ...settings };
   }
 
   /** @param {string} href

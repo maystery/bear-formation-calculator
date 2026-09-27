@@ -33,6 +33,35 @@
       : { valid: false, value: 0 };
   }
 
+  /** Up to two decimals without trailing zeros: 1.50 → "1.5", 10.00 → "10".
+   * @param {number} value
+   * @returns {string} */
+  function trimDecimals(value) {
+    return value.toFixed(2).replace(/\.?0+$/, '');
+  }
+
+  /** @param {number} value
+   * @returns {string} */
+  function formatFull(value) {
+    return Math.round(value).toLocaleString('en-US');
+  }
+
+  /**
+   * Format a troop or capacity amount for display. `k` uses k/m shorthand;
+   * `full` uses grouped whole numbers. Rounds to the shown precision before
+   * choosing a suffix, so 999,995 is "1m" rather than "1000k".
+   * @param {number} value
+   * @param {'k' | 'full'} [unit]
+   * @returns {string}
+   */
+  function formatAmount(value, unit = 'k') {
+    const whole = Math.round(value);
+    if (unit === 'full' || Math.abs(whole) < 1000) return formatFull(whole);
+    const thousands = Math.round(whole / 10) / 100;
+    if (Math.abs(thousands) < 1000) return trimDecimals(thousands) + 'k';
+    return trimDecimals(whole / 1e6) + 'm';
+  }
+
   /** @param {unknown} v
    * @returns {import('./types').ParsedNumber} */
   function parseRatio(v) {
@@ -359,6 +388,9 @@
     checkMarch,
     parseAmount,
     parseRatio,
+    trimDecimals,
+    formatFull,
+    formatAmount,
     allocate,
     allocateSequentially,
     splitByRatio,
