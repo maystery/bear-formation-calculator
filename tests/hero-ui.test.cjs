@@ -14,6 +14,7 @@ const {
   HERO_SLOTS,
   makePortraitClipPath,
   isHeroAvailableForSeason,
+  skillDetails,
 } = require('../hero-ui.js');
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -189,6 +190,27 @@ test('stat icons and recommended values use available assets', () => {
     assert.ok(fs.existsSync(path.join(projectRoot, stat.icon)));
   assert.ok(fs.existsSync(path.join(projectRoot, RECOMMENDED_LEVEL_ICON)));
   assert.deepEqual(RECOMMENDED_STAT_VALUES, { lethality: 20, attack: 25 });
+});
+
+test('every expedition skill shows its game icon on the card and in the popover', () => {
+  for (const { key } of HERO_SLOTS) {
+    const { icon } = HEROES[key].expeditionSkill;
+    assert.match(icon, /^assets\/skill-icons\/[a-z-]+\.webp$/, key);
+    assert.ok(fs.existsSync(path.join(projectRoot, icon)), icon);
+    const markup = skillDetails(HEROES[key], key);
+    assert.ok(markup.includes('hero-skill-icon--card'), key);
+    assert.ok(markup.includes('hero-skill-icon--popover'), key);
+    assert.equal(
+      markup.split(`src="${icon}"`).length - 1,
+      1 + HEROES[key].expeditionSkill.effects.length,
+    );
+  }
+  const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+  for (const icon of ['savage-advantage', 'fearless-roar']) {
+    const asset = `assets/skill-icons/${icon}.webp`;
+    assert.ok(html.includes(`src="${asset}"`), asset);
+    assert.ok(fs.existsSync(path.join(projectRoot, asset)), asset);
+  }
 });
 
 test('portrait clip path uses curved shoulders without a rectangular notch', () => {

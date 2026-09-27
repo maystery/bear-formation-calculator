@@ -6,6 +6,16 @@
     versionAnchor: (version) => `v${version.replace(/\./g, '-')}`,
     releases: [
       {
+        version: '1.2.1',
+        date: '2026-09-27',
+        title: 'Skill artwork',
+        changes: [
+          'Added game skill icons beside expedition skill names on hero cards and in skill detail popovers.',
+          'Added skill icons for Valora’s Savage Advantage and Mighty Bison’s Fearless Roar capacity buffs.',
+          'Styled skill icons with rounded accent frames and muted artwork for disabled heroes and inactive Mighty Bison.',
+        ],
+      },
+      {
         version: '1.2.0',
         date: '2026-09-27',
         title: 'Season selection and Luna',

@@ -70,6 +70,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Battle Ready',
+        icon: 'assets/skill-icons/battle-ready.webp',
         recommendedLevel: 4,
         effects: [{ stat: 'lethality', values: [5, 10, 15, 20, 25] }],
       },
@@ -100,6 +101,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Stand of Arms',
+        icon: 'assets/skill-icons/stand-of-arms.webp',
         recommendedLevel: 4,
         effects: [{ stat: 'lethality', values: [5, 10, 15, 20, 25] }],
       },
@@ -130,6 +132,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'On Guard',
+        icon: 'assets/skill-icons/on-guard.webp',
         recommendedLevel: 4,
         effects: [{ stat: 'lethality', values: [5, 10, 15, 20, 25] }],
       },
@@ -160,6 +163,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Tri-Phalanx',
+        icon: 'assets/skill-icons/tri-phalanx.webp',
         recommendedLevel: 5,
         effects: [{ stat: 'attack', values: [5, 10, 15, 20, 25] }],
       },
@@ -191,6 +195,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Warbringer',
+        icon: 'assets/skill-icons/warbringer.webp',
         recommendedLevel: 5,
         effects: [{ stat: 'attack', values: [5, 10, 15, 20, 25] }],
       },
@@ -221,6 +226,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Driving Light',
+        icon: 'assets/skill-icons/driving-light.webp',
         type: 'Passive',
         description:
           "Luna's lunar light drives away wickedness, increasing total Squad's Attack by up to 25%.",
@@ -254,6 +260,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Crouching Tiger',
+        icon: 'assets/skill-icons/crouching-tiger.webp',
         recommendedLevel: 5,
         effects: [{ stat: 'enemyDamageTaken', values: [5, 10, 15, 20, 25] }],
       },
@@ -287,6 +294,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Dissolution',
+        icon: 'assets/skill-icons/dissolution.webp',
         recommendedLevel: 5,
         effects: [{ stat: 'enemyDefense', values: [-5, -10, -15, -20, -25] }],
       },
@@ -318,6 +326,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Artillerymen',
+        icon: 'assets/skill-icons/artillerymen.webp',
         recommendedLevel: 2,
         effects: [
           { stat: 'attack', values: [3, 6, 9, 12, 15] },
@@ -352,6 +361,7 @@
       deployCap: 'Hero deploy cap',
       expeditionSkill: {
         name: 'Noble Path',
+        icon: 'assets/skill-icons/noble-path.webp',
         recommendedLevel: 5,
         effects: [
           { stat: 'attack', values: [3, 6, 9, 12, 15] },
@@ -474,6 +484,15 @@
     return progression + rows;
   }
 
+  /** Game artwork for a skill; decorative because the skill name is always adjacent. */
+  function skillIcon(skill, modifier) {
+    if (!skill.icon) return '';
+    return (
+      `<span class="hero-skill-icon ${modifier}" aria-hidden="true">` +
+      `<img src="${skill.icon}" alt="" decoding="async"></span>`
+    );
+  }
+
   function skillDetails(hero, key) {
     const skill = hero.expeditionSkill;
     const triggers = skill.effects
@@ -506,8 +525,12 @@
         return (
           `<span class="hero-skill-popover hero-skill-popover--${hero.variant}" id="${popoverId}" ` +
           `data-skill-owner="${key}" data-stat="${effect.stat}" role="tooltip" aria-hidden="true">` +
+          `<span class="hero-skill-popover__header">` +
+          skillIcon(skill, 'hero-skill-icon--popover') +
+          `<span class="hero-skill-popover__title">` +
           `<strong class="hero-skill-popover__name">${skill.name}</strong>` +
           (skill.type ? `<span class="hero-skill-type">${skill.type}</span>` : '') +
+          `</span></span>` +
           (skill.description
             ? `<span class="hero-skill-description">${skill.description}</span>`
             : '') +
@@ -519,7 +542,9 @@
       .join('');
     return (
       `<span class="hero-skill-details">` +
-      `<span class="hero-card__skill-name">${skill.name}</span>` +
+      `<span class="hero-card__skill-heading">` +
+      skillIcon(skill, 'hero-skill-icon--card') +
+      `<span class="hero-card__skill-name">${skill.name}</span></span>` +
       `<span class="hero-stats">${triggers}</span>` +
       `<span class="hero-skill-recommendation"><img src="${RECOMMENDED_LEVEL_ICON}" alt="">` +
       `<span>Recommended Lv.&nbsp;<strong>${skill.recommendedLevel}</strong></span></span>` +

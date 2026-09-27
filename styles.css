@@ -1663,6 +1663,19 @@ h1 {
 .valora-buff-card .capacity-buff-skill {
   color: color-mix(in srgb, var(--text-warning) 68%, var(--text-secondary));
 }
+.capacity-buff-skill:has(.capacity-buff-skill__icon) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+.capacity-buff-skill__icon {
+  --skill-icon-size: 22px;
+  --skill-icon-ring: var(--text-pro);
+}
+.valora-buff-card .capacity-buff-skill__icon {
+  --skill-icon-ring: var(--text-warning);
+}
 .capacity-buff-level-control {
   --buff-picker-accent: var(--text-pro);
   position: relative;
@@ -1809,6 +1822,13 @@ h1 {
 }
 .bison-buff-card:not(.is-active) .capacity-buff-skill {
   color: color-mix(in srgb, var(--text-secondary) 88%, var(--text-muted));
+}
+.bison-buff-card:not(.is-active) .capacity-buff-skill__icon {
+  --skill-icon-ring: var(--text-secondary);
+}
+.bison-buff-card:not(.is-active) .capacity-buff-skill__icon img {
+  filter: grayscale(1) saturate(0.12) brightness(0.8);
+  opacity: 0.75;
 }
 .bison-buff-card:not(.is-active) .capacity-buff-description {
   color: color-mix(in srgb, var(--text-secondary) 56%, var(--text-muted));
@@ -2813,6 +2833,9 @@ tr.sumline td:nth-child(6) {
     drop-shadow(2px 0 1px color-mix(in srgb, var(--hero-accent-strong) 20%, transparent))
     drop-shadow(0 10px 13px rgba(0, 0, 0, 0.34));
 }
+.herocard:not(.on) .hero-skill-icon img {
+  filter: grayscale(1) saturate(0.2) brightness(0.7);
+}
 .herocard:not(.on) .hero-card__image {
   filter: grayscale(1) saturate(0.2) brightness(0.55) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.28));
   opacity: 0.56;
@@ -2921,8 +2944,58 @@ tr.sumline td:nth-child(6) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hero-card--nudge-skill .hero-card__skill-name {
+.hero-card--nudge-skill .hero-card__skill-heading {
   transform: translateX(5px);
+}
+.hero-card__skill-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+.hero-card__skill-heading .hero-card__skill-name {
+  min-width: 0;
+}
+/* Game skill artwork: a rounded tile with an accent ring and a soft top sheen. */
+.hero-skill-icon {
+  --skill-icon-size: 18px;
+  --skill-icon-ring: var(--hero-accent, currentColor);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--skill-icon-size);
+  height: var(--skill-icon-size);
+  border-radius: calc(var(--skill-icon-size) * 0.26);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--skill-icon-ring) 55%, rgba(255, 255, 255, 0.2)),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero-skill-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.2s ease;
+}
+.hero-skill-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.22), transparent 42%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+.hero-skill-icon--popover {
+  --skill-icon-size: 42px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--skill-icon-ring) 60%, rgba(255, 255, 255, 0.2)),
+    0 0 18px color-mix(in srgb, var(--skill-icon-ring) 28%, transparent),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 .hero-stats {
   display: flex;
@@ -3048,6 +3121,17 @@ tr.sumline td:nth-child(6) {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+.hero-skill-popover__header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.hero-skill-popover__title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .hero-skill-popover__name {
   color: var(--hero-accent-strong);
@@ -3406,7 +3490,7 @@ tr.sumline td:nth-child(6) {
     overflow-wrap: anywhere;
     text-overflow: clip;
   }
-  .hero-card--nudge-skill .hero-card__skill-name {
+  .hero-card--nudge-skill .hero-card__skill-heading {
     transform: none;
   }
 }
