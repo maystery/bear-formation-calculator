@@ -41,6 +41,7 @@ for (const engine of ['chromium', 'webkit']) {
           0,
         );
         const card = page.locator('[data-hero="weeWoo"]');
+        const portraitSource = await card.locator('.hero-card__image').getAttribute('data-src');
         const originalSize = await card.evaluate((element) => ({
           width: element.offsetWidth,
           height: element.offsetHeight,
@@ -49,8 +50,9 @@ for (const engine of ['chromium', 'webkit']) {
           (element) => element.getBoundingClientRect().top + scrollY,
         );
         await page.evaluate((top) => scrollTo(0, top - innerHeight - 200), firstTop);
-        await page.waitForFunction(() =>
-          window.loadedPortraits.includes('assets/heroes/weeandwoo.webp'),
+        await page.waitForFunction(
+          (source) => window.loadedPortraits.includes(source),
+          portraitSource,
         );
         assert.ok(
           await card.evaluate((element) => element.getBoundingClientRect().top > innerHeight),

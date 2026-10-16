@@ -6,6 +6,21 @@
     versionAnchor: (version) => `v${version.replace(/\./g, '-')}`,
     releases: [
       {
+        version: '1.3.0',
+        date: '2026-10-16',
+        title: 'The midnight hunt',
+        description:
+          'Celebrate Halloween with a seasonal design, costumes for your heroes and capacity buffs, and a gently animated moonlit scene.',
+        changes: [
+          'Added a saved Holiday theme selector with Auto, Classic, and Halloween choices. Auto activates Halloween from October 1 through November 2, independently of light/dark mode and game-season selection.',
+          'Added copper and plum colors, cobweb card details, a moonlit banner, and a small pumpkin beside the page title.',
+          'Added Halloween costumes for all ten joiner heroes, with matching assignment-priority and march-leader avatars, plus pumpkin armor for Valora and a vampire cape for Mighty Bison.',
+          'Added a descending spider, softly glowing pumpkin eyes, and an occasional fluttering bat. The saved Animate scene control pauses these effects; they also pause off-screen and in hidden tabs and respect reduced-motion preferences.',
+          'Preserved all original artwork and calculator behavior. Classic restores the original design, and seasonal images fall back to their original assets if unavailable.',
+          'Added reusable holiday definitions, recurring calendar windows, and separate seasonal artwork folders for future celebrations. Appearance preferences stay local when sharing setup links.',
+        ],
+      },
+      {
         version: '1.2.1',
         date: '2026-09-27',
         title: 'Skill artwork',

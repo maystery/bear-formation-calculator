@@ -1,0 +1,368 @@
+/* Seasonal presentation lives beside the classic design. Light/dark stays independent. */
+.holiday-title-pumpkin {
+  display: none;
+  width: 26px;
+  height: 26px;
+  margin-inline-start: 5px;
+  vertical-align: -4px;
+}
+:root[data-holiday='halloween'] .holiday-title-pumpkin {
+  display: inline-block;
+}
+.appearance-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  flex: none;
+  max-width: 270px;
+}
+.holiday-picker {
+  display: grid;
+  gap: 4px;
+}
+.holiday-picker > span {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.holiday-picker select {
+  width: 156px;
+  height: 32px;
+  font-size: 12px;
+  padding-inline: 9px;
+}
+.appearance-controls #theme {
+  height: 32px;
+}
+.holiday-status {
+  width: 100%;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: right;
+}
+.holiday-banner {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 158px;
+  margin: 8px 0 26px;
+  overflow: hidden;
+  border: 1px solid light-dark(#d5b3a2, #664032);
+  border-radius: 14px;
+  background: linear-gradient(115deg, #2d1b36, #1b1425 60%, #38202a);
+  color: #fff0de;
+}
+.holiday-banner[hidden] {
+  display: none;
+}
+.holiday-banner-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 70%;
+  padding: 24px 30px;
+}
+.holiday-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffb478;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.holiday-eyebrow::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: currentColor;
+}
+.holiday-banner h2 {
+  margin: 5px 0 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.holiday-banner p {
+  margin: 0;
+  color: #c7b7c8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.holiday-motion-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  margin-top: 8px;
+  color: #c7b7c8;
+  font-size: 10px;
+  cursor: pointer;
+}
+.holiday-motion-control input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #e5a66f;
+  cursor: pointer;
+}
+.holiday-motion-control:has(input:focus-visible) {
+  outline: 2px solid #ffb478;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.holiday-banner-art {
+  position: absolute;
+  z-index: 0;
+  right: 10px;
+  bottom: 0;
+  width: min(42%, 440px);
+  height: 100%;
+  pointer-events: none;
+}
+.holiday-banner-art > img,
+.holiday-effects {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right bottom;
+}
+.holiday-effects {
+  overflow: hidden;
+}
+.holiday-web {
+  opacity: 0.38;
+}
+.holiday-spider-drop {
+  transform: translateY(12px);
+  animation: halloween-spider-drop 20s ease-in-out infinite;
+}
+.holiday-spider-legs {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: halloween-spider-step 0.7s steps(2, end) infinite;
+}
+.holiday-pumpkin-glow {
+  opacity: 0.55;
+  filter: drop-shadow(0 0 3px #ffb55f);
+  animation: halloween-candle-glow 5s ease-in-out infinite;
+}
+.holiday-bat-flight {
+  opacity: 0;
+  animation: halloween-bat-flight 24s linear infinite;
+}
+.holiday-bat-wings {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: halloween-bat-flap 0.28s ease-in-out infinite alternate;
+}
+.holiday-effects .holiday-motion {
+  animation-play-state: paused;
+}
+.holiday-banner.is-visible:not(.effects-paused) .holiday-motion {
+  animation-play-state: running;
+}
+@keyframes halloween-spider-drop {
+  0%,
+  12%,
+  42%,
+  100% {
+    transform: translateY(12px);
+  }
+  24%,
+  30% {
+    transform: translateY(66px);
+  }
+  34% {
+    transform: translateY(62px);
+  }
+}
+@keyframes halloween-spider-step {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+@keyframes halloween-candle-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  65% {
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0.65;
+  }
+}
+@keyframes halloween-bat-flight {
+  0%,
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(422px, 78px) rotate(-12deg) scale(0.5);
+  }
+  75% {
+    opacity: 0.85;
+    transform: translate(398px, 65px) rotate(-18deg) scale(0.5);
+  }
+  82% {
+    opacity: 0.85;
+    transform: translate(345px, 37px) rotate(-8deg) scale(0.6);
+  }
+  89% {
+    opacity: 0.85;
+    transform: translate(284px, 28px) rotate(4deg) scale(0.6);
+  }
+  96% {
+    opacity: 0;
+    transform: translate(220px, 10px) rotate(-12deg) scale(0.4);
+  }
+}
+@keyframes halloween-bat-flap {
+  from {
+    transform: scaleY(0.35);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+:root[data-holiday='halloween'] {
+  --surface-0: light-dark(#f7f0e9, #141019);
+  --surface-1: light-dark(#fcf7f1, #211a29);
+  --surface-2: light-dark(#fffdfa, #2c2335);
+  --text-primary: light-dark(#352337, #f3e9e1);
+  --text-secondary: light-dark(#685666, #bfb0c5);
+  --text-muted: light-dark(#796675, #a08da6);
+  --border: light-dark(#ddcccb, #483749);
+  --border-strong: light-dark(#b89a9b, #705372);
+  --bg-accent: light-dark(#f8e5d4, #482a23);
+  --text-accent: light-dark(#95451b, #ffb478);
+  --bg-pro: light-dark(#eee6f6, #3c2855);
+  --text-pro: light-dark(#68408c, #d9b8f8);
+  --bg-warning: light-dark(#f8e9d7, #4b3020);
+  --text-warning: light-dark(#82511b, #f8c783);
+}
+:root[data-holiday='halloween'] body {
+  background-image:
+    radial-gradient(ellipse at 0 0, light-dark(#eacfb744, #693d322e), transparent 45%),
+    radial-gradient(ellipse at 100% 10%, light-dark(#d8c3e733, #6736891f), transparent 40%);
+  background-repeat: no-repeat;
+  background-size: 100% 1100px;
+}
+:root[data-holiday='halloween'] .formation-section {
+  --text-accent: light-dark(#95451b, #ffb478);
+}
+:root[data-holiday='halloween'] .accordion {
+  border-color: var(--border);
+}
+:root[data-holiday='halloween'] .herocard.on {
+  --hero-accent: #c9a2ed;
+  --hero-accent-strong: #f1dfff;
+  --hero-surface: #382043;
+  --hero-surface-deep: #180e24;
+}
+:root[data-holiday='halloween'] .hero-card--gold.on {
+  --hero-accent: #df9451;
+  --hero-accent-strong: #ffdbb4;
+  --hero-surface: #4a2925;
+  --hero-surface-deep: #21111c;
+}
+:root[data-holiday='halloween'] .hero-card__pattern {
+  top: -1px;
+  right: -1px;
+  width: 150px;
+  height: 150px;
+  background: url('assets/holidays/halloween/cobweb.svg') top right / contain no-repeat;
+  opacity: 0.12;
+  filter: none;
+}
+:root[data-holiday='halloween'] .hero-priority {
+  border-color: color-mix(in srgb, var(--text-accent) 25%, var(--border));
+}
+:root[data-holiday='halloween'] .valora-buff-card {
+  border-color: color-mix(in srgb, #df9451 48%, var(--border));
+  background: linear-gradient(125deg, light-dark(#f8e6d8, #422628), var(--surface-1) 75%);
+}
+:root[data-holiday='halloween'] .bison-buff-card.is-active {
+  border-color: color-mix(in srgb, #c9a2ed 54%, var(--border));
+  background: linear-gradient(125deg, light-dark(#eee3f5, #382243), var(--surface-1) 75%);
+}
+@media (pointer: coarse) {
+  .holiday-motion-control {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  .holiday-picker select,
+  .appearance-controls #theme {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+@media (max-width: 660px) {
+  .pagehead {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .pagehead > div:first-child {
+    width: 100%;
+  }
+  .pagehead .sub {
+    margin-bottom: 14px;
+  }
+  .appearance-controls {
+    align-items: center;
+    justify-content: flex-start;
+    max-width: 100%;
+    margin-bottom: 18px;
+  }
+  .holiday-picker {
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .holiday-status {
+    text-align: left;
+  }
+  .holiday-banner {
+    min-height: 145px;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  .holiday-banner-copy {
+    max-width: 78%;
+    padding: 20px;
+  }
+  .holiday-banner-art {
+    right: -42px;
+    width: 65%;
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .holiday-banner .holiday-motion {
+    animation: none;
+  }
+  .holiday-motion-control {
+    display: none;
+  }
+  :root[data-holiday='halloween'] body {
+    transition: none;
+  }
+}

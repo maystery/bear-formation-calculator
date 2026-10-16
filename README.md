@@ -81,6 +81,12 @@ Every number field accepts shorthand — `566k`, `1.2m` and `281,850` all parse 
 
 Everything you type is saved in the browser, including the filling strategy, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
 
+**Holiday theme** independently selects **Auto · seasonal**, **Classic**, or **Halloween**. Auto uses the visitor's local date and activates Halloween from **October 1 through November 2**, every year. Choose Halloween to use it year-round, or Classic to keep the original design. The choice is saved locally and is independent of light/dark mode and the game-season selector. Setup links share calculator values without changing the recipient's appearance preferences; Reset returns the holiday choice to Auto.
+
+Halloween adds a moonlit banner, warm copper and plum colors, subtle cobweb card details, and ten generated hero costumes with matching priority and march-leader avatars. Original artwork stays in place. Seasonal PNG sources and optimized WebP exports live under `assets/holidays/halloween/`; see [the artwork notes](docs/halloween-artwork.md) for the generation prompts.
+
+Valora and Mighty Bison also wear matching Halloween costumes on their capacity cards. The banner has a descending spider, softly glowing pumpkin eyes, and an occasional fluttering bat. **Animate scene** lets you pause these effects and remembers your choice. Effects pause off-screen and when the tab is hidden; reduced-motion preferences show a static scene automatically.
+
 All six calculator stages—**Formation Setup**, **Capacity**, **Capacity buffs**, **Joiner heroes**, **Result**, and **Check a march**—use the same collapsible header. Select anywhere on the header to expand or collapse it. Collapsed summaries show the current ratios and strategy, capacities, active bonus, hero assignments, result bottleneck, or march verdict. Sections start expanded, remember their state in your browser, and keep their settings active while collapsed. Action buttons appear inside the expanded sections.
 
 Use **Copy formation** to copy the calculated marches as readable text. The result table also shows each march's used capacity, effective cap and utilization percentage. **Copy setup link** creates a URL containing the troop, ratio, capacity, march, filling strategy and hero settings; opening that link loads the shared setup over the browser's saved values and shows a confirmation banner.

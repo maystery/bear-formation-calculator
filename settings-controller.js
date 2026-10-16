@@ -39,6 +39,7 @@ window.BearSettingsController = Object.freeze({
           $(field.id)[property] = value;
         }
       }
+      BearHolidayThemes.apply($('holidayTheme').value);
     }
 
     function setupUrl() {

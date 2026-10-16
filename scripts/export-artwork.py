@@ -2,6 +2,7 @@
 """Export the original PNG artwork to WebP using ImageMagick's convert command."""
 
 from pathlib import Path
+import argparse
 import shutil
 import subprocess
 
@@ -11,6 +12,9 @@ ROOT = Path(__file__).resolve().parent.parent
 EXPORTS = [
     ("assets/heroes/*.png", 1000),
     ("assets/heroes/profile/*.png", 128),
+    ("assets/holidays/*/heroes/*.png", 1000),
+    ("assets/holidays/*/profile/*.png", 128),
+    ("assets/holidays/*/buffs/*.png", 960),
     ("assets/seasons/*.png", 222),
     ("assets/skills/*.png", 96),
     ("assets/skill-icons/*.png", 144),
@@ -20,12 +24,18 @@ EXPORTS = [
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--holidays-only", action="store_true",
+                        help="Export seasonal additions without rewriting classic assets")
+    args = parser.parse_args()
     convert = shutil.which("magick") or shutil.which("convert")
     if not convert:
         raise SystemExit("Install ImageMagick with WebP support to export artwork.")
 
     original_bytes = exported_bytes = count = 0
     for pattern, size in EXPORTS:
+        if args.holidays_only and not pattern.startswith("assets/holidays/"):
+            continue
         for source in sorted(ROOT.glob(pattern)):
             destination = source.with_suffix(".webp")
             subprocess.run([

@@ -5,6 +5,7 @@ const appGlobals = Object.fromEntries(
   [
     'BearCalcCore',
     'BearHeroUI',
+    'BearHolidayThemes',
     'BearSeasonSelector',
     'BearSettings',
     'BearHeroController',

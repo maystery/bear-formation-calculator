@@ -57,7 +57,8 @@ window.BearFormationView = Object.freeze({
     function leaderCell(key) {
       const hero = HEROES[key || 'none'];
       const cls = key ? 'leadcell' : 'leadcell leadnone';
-      return `<div class="${cls}"><img src="${hero.avatar}" alt=""><span>${hero.name}</span></div>`;
+      const avatar = BearHolidayThemes.asset(key, 'avatar', hero.avatar);
+      return `<div class="${cls}"><img src="${avatar}" data-hero-asset="${key || 'none'}" data-asset-kind="avatar" data-default-src="${hero.avatar}" alt=""><span>${hero.name}</span></div>`;
     }
     const row = (a, lead, b, c, d, e, capacity, cls) =>
       `<tr class="${cls}"><th scope="row">${a}</th><td>${lead}</td><td>${b}</td><td>${c}</td><td>${d}</td><td><b>${e}</b></td><td>${capacity}</td></tr>`;

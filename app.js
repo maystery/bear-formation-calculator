@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
   const { FIELDS, inputFields, inputEvent, parseField } = BearSettings;
+  BearHolidayThemes.init();
   let resetting = false;
   const feedback = BearFeedback.create();
   const { copyText, copyFeedback } = feedback;

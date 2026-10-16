@@ -1,8 +1,12 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(
+    typeof module === 'object' && module.exports
+      ? require('./holiday-themes.js')
+      : root.BearHolidayThemes,
+  );
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.BearHeroUI = api;
-})(globalThis, () => {
+})(globalThis, (holidays) => {
   'use strict';
 
   const SEASON_BADGE_BY_SEASON = Object.freeze({
@@ -635,7 +639,8 @@
       `<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">` +
       `<path class="hero-card__clip-shape" d="${portraitClipPath}"></path>` +
       `</clipPath></defs>` +
-      `<image class="hero-card__image" data-src="${hero.portrait}" x="${art.x}" y="${art.y}" ` +
+      `<image class="hero-card__image" data-src="${holidays.asset(key, 'portrait', hero.portrait)}" ` +
+      `data-hero-asset="${key}" data-asset-kind="portrait" data-default-src="${hero.portrait}" x="${art.x}" y="${art.y}" ` +
       `width="${art.width}" height="${art.height}" preserveAspectRatio="xMidYMax meet" ` +
       `clip-path="url(#${clipId})"></image></svg>` +
       `<span class="hero-card__art-fade" aria-hidden="true"></span>` +
@@ -668,7 +673,9 @@
       HERO_SLOTS.map(
         ({ key }, index) =>
           `<span class="hero-priority-chip" role="listitem">` +
-          `<b>${index + 1}</b><img class="hero-priority-avatar" src="${escapeHtml(HEROES[key].avatar)}" alt="" width="24" height="24"><span>${escapeHtml(HEROES[key].name)}</span></span>`,
+          `<b>${index + 1}</b><img class="hero-priority-avatar" src="${escapeHtml(holidays.asset(key, 'avatar', HEROES[key].avatar))}" ` +
+          `data-hero-asset="${key}" data-asset-kind="avatar" data-default-src="${escapeHtml(HEROES[key].avatar)}" ` +
+          `alt="" width="24" height="24"><span>${escapeHtml(HEROES[key].name)}</span></span>`,
       ).join('') +
       '</span>'
     );

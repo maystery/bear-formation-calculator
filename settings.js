@@ -1,11 +1,15 @@
 (function (root, factory) {
   const api =
     typeof module === 'object' && module.exports
-      ? factory(require('./calculator-core.js'), require('./hero-ui.js'))
-      : factory(root.BearCalcCore, root.BearHeroUI);
+      ? factory(
+          require('./calculator-core.js'),
+          require('./hero-ui.js'),
+          require('./holiday-themes.js'),
+        )
+      : factory(root.BearCalcCore, root.BearHeroUI, root.BearHolidayThemes);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.BearSettings = api;
-})(globalThis, (core, heroes) => {
+})(globalThis, (core, heroes, holidays) => {
   'use strict';
 
   const STORE_KEY = 'bearcalc.v1';
@@ -52,6 +56,8 @@
         }),
       ),
       { id: 'theme', kind: 'theme', values: THEMES, scope: 'preference' },
+      { id: 'holidayTheme', kind: 'select', values: holidays.PREFERENCES, scope: 'preference' },
+      { id: 'holidayMotion', kind: 'checkbox', scope: 'preference' },
     ].map((field) =>
       Object.freeze({
         key: field.id,

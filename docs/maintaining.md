@@ -8,6 +8,8 @@ The site has no build step. Keep script order in `index.html`: pure calculation 
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `calculator-core.js`     | Parsing, number formatting, capacity rules, allocation, rounding, and `calculateFormation(settings)` |
 | `hero-ui.js`             | Hero metadata, assignment priority, and generated card markup                                        |
+| `holiday-themes.js`      | Holiday registry, recurring local dates, appearance selection, and seasonal artwork resolution       |
+| `holiday-themes.css`     | Seasonal palettes, banner, artwork details, and holiday selector layout                              |
 | `settings.js`            | Field schema, validation, serialization, and setup URL compatibility                                 |
 | `hero-controller.js`     | Card state, portrait loading, visibility, and skill popovers                                         |
 | `capacity-controller.js` | Capacity summaries, skill menus, and Bison state                                                     |
@@ -46,6 +48,16 @@ Summaries update alongside their source data: `formation-view.js` owns formation
 `season-selector.js` is a reusable presentation controller with `value`, `onChange`, and `setValue`; it uses the native popover top layer and the existing season badge renderer. `selectedSeason` is a shared formation field, defaulting to S8 for compatibility. `hero-ui.js` owns cumulative availability (`hero.season <= selectedSeason`); the hero controller applies it to cards, priority numbering, and leader assignment without changing hidden checkbox values. The selector is the one interactive control inside an accordion summary and prevents the summary's default toggle action. Other header clicks still fold the section.
 
 Add metadata to `HEROES` and place the key in `HERO_SLOTS` in `hero-ui.js`; that order drives cards, priority chips, assignment, and settings fields. The expedition skill’s `recommendedLevel` is the single source for card and popover level guidance. It does not restrict hero selection; recommended stat values separately highlight effect progression rows. Give the expedition skill an `icon` from `assets/skill-icons/` (the game icon cropped to its inner artwork, without the white frame); cards and popovers draw the rounded frame themselves. Valora’s and Mighty Bison’s skill icons in the same folder are referenced from `index.html`. Update the README roster and hero expectations in the unit tests. Export assets with `python3 scripts/export-artwork.py` and check small-screen portrait clipping and wrapped skill names.
+
+## Adding a holiday theme
+
+Keep holiday themes separate from the game-season filter and the light/dark preference. Add a definition to `HOLIDAYS` in `holiday-themes.js`, with a label, banner title/description, optional banner artwork, and inclusive `start`/`end` dates in `MMDD` form. Date ranges may wrap across New Year. The selector and settings validation derive their available choices from the registry. Add scoped CSS under `:root[data-holiday='your-holiday']` in `holiday-themes.css` and update the small pre-paint initializer in `index.html` with the new automatic date window and recognized manual choice.
+
+Put new artwork in `assets/holidays/<holiday>/heroes/` and `profile/`. A definition's `heroes` map uses the existing hero keys and optional `portrait`/`avatar` paths. Missing overrides use the original artwork; image load errors also restore the original image. Keep all classic PNGs and WebPs. Use `python3 scripts/export-artwork.py --holidays-only` to export seasonal PNGs without rewriting classic exports. Halloween's retained prompts and source mapping are in [halloween-artwork.md](halloween-artwork.md).
+
+Theme changes update loaded portraits and avatars in place. Off-screen SVG portraits keep their `data-src` until the existing observer loads them. Optional `buffs` entries map capacity-card keys (`valora`, `bison`) to image paths; images with `data-buff-asset` and `data-default-src` use the same switching and error fallback behavior. Put their source PNGs and WebP exports in `assets/holidays/<holiday>/buffs/`.
+
+Banner motion uses decorative inline SVG groups and CSS keyframes. `holidayMotion` is a saved local checkbox preference, excluded from shared links. An intersection observer and document visibility pause effects while they cannot be seen. Reduced-motion CSS disables animation and hides the motion control. Keep these behaviors when adding effects, and keep decorative artwork out of the accessibility tree. Do not rebuild cards or alter hero eligibility, enabled state, assignment priority, or calculations for a holiday. Add calendar boundary and browser regression coverage when adding a theme; `scripts/check-holidays.cjs` runs with `test:browser`.
 
 ## Publishing an update
 

@@ -6,14 +6,27 @@
     <title>Bear Formation Calculator</title>
     <script>
       // Apply the saved theme before paint. Keep the key in sync with settings.js.
+      let saved = {};
       try {
-        const saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
+        saved = JSON.parse(localStorage.getItem('bearcalc.v1') || '{}');
         const theme =
           saved && typeof saved === 'object' && !Array.isArray(saved) ? saved.theme : null;
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
       } catch (e) {}
+      // Match the recurring Halloween window in holiday-themes.js before first paint.
+      const today = new Date();
+      const day = (today.getMonth() + 1) * 100 + today.getDate();
+      const holiday = saved?.holidayTheme;
+      document.documentElement.dataset.holidayPreference =
+        holiday === 'default' || holiday === 'halloween' ? holiday : 'auto';
+      document.documentElement.dataset.holiday =
+        holiday === 'halloween' || (holiday !== 'default' && day >= 1001 && day <= 1102)
+          ? 'halloween'
+          : 'default';
     </script>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="holiday-themes.css" />
+    <script src="holiday-themes.js" defer></script>
     <script src="calculator-core.js" defer></script>
     <script src="hero-ui.js" defer></script>
     <script src="settings.js" defer></script>
@@ -31,15 +44,111 @@
     <div class="wrap">
       <div class="pagehead">
         <div>
-          <h1>Bear formation calculator</h1>
+          <h1 class="page-title">
+            <span>Bear formation calculator</span>
+            <img
+              class="holiday-title-pumpkin"
+              src="assets/holidays/halloween/title-pumpkin.svg"
+              alt=""
+              width="26"
+              height="26"
+              aria-hidden="true"
+            />
+          </h1>
           <p class="sub">
             Splits your troops across up to 7 bear hunt marches at a fixed composition ratio.
           </p>
         </div>
-        <button id="theme" type="button">
-          <span class="ticon" id="themeIcon"></span><span id="themeLabel"></span>
-        </button>
+        <div class="appearance-controls">
+          <label class="holiday-picker" for="holidayTheme">
+            <span>Holiday theme</span>
+            <select id="holidayTheme" aria-describedby="holidayStatus">
+              <option value="auto">Auto · seasonal</option>
+              <option value="default">Classic</option>
+              <option value="halloween">Halloween</option>
+            </select>
+          </label>
+          <button id="theme" type="button">
+            <span class="ticon" id="themeIcon"></span><span id="themeLabel"></span>
+          </button>
+          <span class="holiday-status" id="holidayStatus" role="status"></span>
+        </div>
       </div>
+
+      <aside class="holiday-banner" id="holidayBanner" aria-labelledby="holidayTitle" hidden>
+        <div class="holiday-banner-copy">
+          <span class="holiday-eyebrow" id="holidayEyebrow"></span>
+          <h2 id="holidayTitle"></h2>
+          <p id="holidayDescription"></p>
+          <label class="holiday-motion-control" for="holidayMotion">
+            <input id="holidayMotion" type="checkbox" checked />
+            <span>Animate scene</span>
+          </label>
+        </div>
+        <div class="holiday-banner-art" aria-hidden="true">
+          <img src="assets/holidays/halloween/nightfall.svg" alt="" width="440" height="180" />
+          <svg
+            class="holiday-effects"
+            viewBox="0 0 440 180"
+            preserveAspectRatio="xMaxYMax meet"
+            focusable="false"
+          >
+            <g class="holiday-web" fill="none" stroke="#bca7c6" stroke-width="0.7">
+              <path d="M440 0H350M440 0 354 35M440 0 375 68M440 0 406 88M440 0V94" />
+              <path
+                d="M416 0Q415 10 419 9Q418 20 425 17Q426 26 432 22Q436 27 440 25M392 0Q391 20 398 17Q395 38 409 33Q410 51 425 43Q430 52 440 49M365 0Q364 31 375 27Q371 60 393 52Q395 78 416 66Q423 81 440 77"
+              />
+            </g>
+            <g transform="translate(406 0)">
+              <g class="holiday-spider-drop holiday-motion">
+                <path
+                  class="holiday-spider-thread"
+                  d="M0-100V0"
+                  fill="none"
+                  stroke="#bca7c6"
+                  stroke-width="0.7"
+                />
+                <g
+                  class="holiday-spider-legs holiday-motion"
+                  fill="none"
+                  stroke="#d2b7dc"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M-2 3-8-1-11 3M-3 6-10 4-13 9M-3 8-10 10-11 15M-2 10-7 14-6 18M2 3 8-1 11 3M3 6 10 4 13 9M3 8 10 10 11 15M2 10 7 14 6 18"
+                  />
+                </g>
+                <ellipse cx="0" cy="8" rx="4" ry="6" fill="#624269" />
+                <circle cx="0" cy="2" r="3" fill="#91649b" />
+                <path
+                  d="M-1.2 1.5h.2M1 1.5h.2"
+                  stroke="#ffcd8e"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                />
+              </g>
+            </g>
+            <g class="holiday-pumpkin-glow holiday-motion" fill="#ffe2a1">
+              <g transform="translate(322 112)">
+                <path d="m9 31 12-10 4 13Zm29 3 4-13 12 10ZM14 44l10 4 7-4 7 4 11-4-7 11H23Z" />
+              </g>
+              <g transform="translate(274 140) scale(.62)">
+                <path d="m10 31 11-10 4 13Zm28 3 4-13 12 10ZM14 44l10 4 7-4 7 4 11-4-7 11H23Z" />
+              </g>
+            </g>
+            <g class="holiday-bat-flight holiday-motion" fill="#100c19">
+              <g class="holiday-bat-wings holiday-motion">
+                <path
+                  d="M0 0Q-10-16-23-9Q-17-7-17 0Q-10-4-8 6ZM0 0Q10-16 23-9Q17-7 17 0Q10-4 8 6Z"
+                />
+              </g>
+              <ellipse cy="1" rx="2.5" ry="5" />
+              <path d="m-2-2-1-5 3 3 3-3-1 5Z" />
+            </g>
+          </svg>
+        </div>
+      </aside>
 
       <div class="shared-notice" id="sharedNotice" role="status" hidden>
         <span class="shared-notice-icon" aria-hidden="true">&#10003;</span>
@@ -361,6 +470,8 @@
               <img
                 class="capacity-buff-art"
                 src="assets/buffs/valora.webp"
+                data-buff-asset="valora"
+                data-default-src="assets/buffs/valora.webp"
                 alt=""
                 aria-hidden="true"
               />
@@ -451,6 +562,8 @@
               <img
                 class="capacity-buff-art"
                 src="assets/buffs/mighty-bison.webp"
+                data-buff-asset="bison"
+                data-default-src="assets/buffs/mighty-bison.webp"
                 alt=""
                 aria-hidden="true"
               />

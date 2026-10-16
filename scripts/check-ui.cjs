@@ -352,14 +352,16 @@ for (const engine of ['chromium', 'webkit']) {
           if (
             chip.querySelector('b').textContent !== String(index + 1) ||
             chip.querySelector('span').textContent !== hero.name ||
-            chip.querySelector('img').getAttribute('src') !== hero.avatar
+            chip.querySelector('img').getAttribute('src') !==
+              BearHolidayThemes.asset(slot.key, 'avatar', hero.avatar)
           )
             issues.push(`${slot.key}: wrong priority`);
           const portraits = card.querySelectorAll('.hero-card__image');
           const portrait = portraits[0];
           if (
             portraits.length !== 1 ||
-            (portrait.getAttribute('href') || portrait.dataset.src) !== hero.portrait
+            (portrait.getAttribute('href') || portrait.dataset.src) !==
+              BearHolidayThemes.asset(slot.key, 'portrait', hero.portrait)
           ) {
             issues.push(`${slot.key}: duplicate or incorrect portrait`);
           }
