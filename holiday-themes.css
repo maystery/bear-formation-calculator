@@ -304,6 +304,79 @@
   border-color: color-mix(in srgb, #c9a2ed 54%, var(--border));
   background: linear-gradient(125deg, light-dark(#eee3f5, #382243), var(--surface-1) 75%);
 }
+:root[data-holiday='winter'] {
+  --bg-accent: light-dark(#e3eee6, #243d32);
+  --text-accent: light-dark(#2d654e, #a2d7b8);
+}
+:root[data-holiday='winter'] .holiday-banner {
+  min-height: clamp(180px, 21vw, 240px);
+  border-color: light-dark(#b39c70, #5c644b);
+  background: #102d32;
+  color: #fff6e3;
+}
+:root[data-holiday='winter'] .holiday-eyebrow {
+  color: #efd091;
+}
+:root[data-holiday='winter'] .holiday-banner p,
+:root[data-holiday='winter'] .holiday-motion-control {
+  color: #f2f2df;
+}
+:root[data-holiday='winter'] .holiday-banner-copy {
+  max-width: 65%;
+}
+:root[data-holiday='winter'] .holiday-banner-art {
+  inset: 0;
+  width: 100%;
+  opacity: 1;
+}
+:root[data-holiday='winter'] .holiday-banner-art > img {
+  object-position: 73% 56%;
+  object-fit: cover;
+}
+:root[data-holiday='winter'] .holiday-banner-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #081e27ee, #081e27bb 38%, transparent 76%);
+}
+:root[data-holiday='winter'] .holiday-effects,
+.winter-snow {
+  display: none;
+}
+.winter-snow {
+  position: absolute;
+  inset: -72px -18px 0 0;
+  background:
+    radial-gradient(circle at 22px 18px, #fff9 1px, transparent 2px),
+    radial-gradient(circle at 87px 53px, #fffb 1.5px, transparent 2.5px);
+  background-size: 124px 72px;
+  animation: winter-snowfall 7s linear infinite paused;
+}
+:root[data-holiday='winter'] .winter-snow {
+  display: block;
+}
+@keyframes winter-snowfall {
+  to {
+    transform: translateY(72px);
+  }
+}
+:root[data-holiday='winter'] .valora-buff-card,
+:root[data-holiday='winter'] .bison-buff-card.is-active {
+  border-color: color-mix(in srgb, #b79a61 50%, var(--border));
+  background: linear-gradient(120deg, light-dark(#dfede1, #203d34), var(--surface-1) 78%);
+}
+:root[data-holiday='winter'] .herocard.on {
+  --hero-accent: #91c2a1;
+  --hero-accent-strong: #e2f3d9;
+  --hero-surface: #29483c;
+  --hero-surface-deep: #102720;
+}
+:root[data-holiday='winter'] .hero-card--gold.on {
+  --hero-accent: #d3ad68;
+  --hero-accent-strong: #ffebbd;
+  --hero-surface: #553237;
+  --hero-surface-deep: #2c1a22;
+}
 @media (pointer: coarse) {
   .holiday-motion-control {
     min-height: 44px;

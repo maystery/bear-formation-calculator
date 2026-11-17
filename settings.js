@@ -125,7 +125,7 @@
       if (source === 'url' && !field.shared) continue;
       const key = source === 'url' ? field.shareKey : field.key;
       if (!Object.hasOwn(record, key)) continue;
-      const value = record[key];
+      const value = key === 'holidayTheme' && record[key] === 'new-build' ? 'winter' : record[key];
       if (['checkbox', 'toggle', 'fold'].includes(field.kind)) {
         if (source === 'url') {
           if (value === '0' || value === '1') output[field.key] = value === '1';

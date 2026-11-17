@@ -13,16 +13,16 @@
           saved && typeof saved === 'object' && !Array.isArray(saved) ? saved.theme : null;
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
       } catch (e) {}
-      // Match the recurring Halloween window in holiday-themes.js before first paint.
+      // Match the recurring holiday windows in holiday-themes.js before first paint.
       const today = new Date();
       const day = (today.getMonth() + 1) * 100 + today.getDate();
-      const holiday = saved?.holidayTheme;
-      document.documentElement.dataset.holidayPreference =
-        holiday === 'default' || holiday === 'halloween' ? holiday : 'auto';
-      document.documentElement.dataset.holiday =
-        holiday === 'halloween' || (holiday !== 'default' && day >= 1001 && day <= 1102)
-          ? 'halloween'
-          : 'default';
+      const holiday = saved?.holidayTheme === 'new-build' ? 'winter' : saved?.holidayTheme;
+      const preference = ['default', 'halloween', 'winter'].includes(holiday) ? holiday : 'auto';
+      document.documentElement.dataset.holidayPreference = preference;
+      let seasonal = 'default';
+      if (day >= 1001 && day <= 1102) seasonal = 'halloween';
+      else if (day >= 1201 || day <= 229) seasonal = 'winter';
+      document.documentElement.dataset.holiday = preference === 'auto' ? seasonal : preference;
     </script>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="holiday-themes.css" />
@@ -66,6 +66,7 @@
               <option value="auto">Auto · seasonal</option>
               <option value="default">Classic</option>
               <option value="halloween">Halloween</option>
+              <option value="winter">Winter</option>
             </select>
           </label>
           <button id="theme" type="button">
@@ -87,6 +88,7 @@
         </div>
         <div class="holiday-banner-art" aria-hidden="true">
           <img src="assets/holidays/halloween/nightfall.svg" alt="" width="440" height="180" />
+          <span class="winter-snow holiday-motion"></span>
           <svg
             class="holiday-effects"
             viewBox="0 0 440 180"

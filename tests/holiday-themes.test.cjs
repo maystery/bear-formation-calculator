@@ -10,22 +10,29 @@ const settings = require('../settings.js');
 const { HERO_SLOTS, HEROES } = require('../hero-ui.js');
 
 test('automatic holidays follow inclusive local dates each year, with explicit overrides', () => {
-  for (const year of [2026, 2027, 2030]) {
+  for (const year of [2026, 2027, 2028]) {
     for (const [month, day, expected] of [
       [8, 30, 'default'],
       [9, 1, 'halloween'],
       [9, 31, 'halloween'],
       [10, 2, 'halloween'],
       [10, 3, 'default'],
-      [11, 25, 'default'],
+      [10, 30, 'default'],
+      [11, 1, 'winter'],
+      [11, 31, 'winter'],
+      [0, 1, 'winter'],
+      [1, 28, 'winter'],
+      [2, 1, 'default'],
     ]) {
       const date = new Date(year, month, day, 23, 59);
       assert.equal(holidays.resolve('auto', date), expected);
       assert.equal(holidays.resolve('default', date), 'default');
       assert.equal(holidays.resolve('halloween', date), 'halloween');
+      assert.equal(holidays.resolve('winter', date), 'winter');
       assert.equal(holidays.resolve('unknown', date), expected);
     }
   }
+  assert.equal(holidays.resolve('auto', new Date(2028, 1, 29)), 'winter');
 });
 
 test('recurring holiday ranges can span New Year', () => {
@@ -50,6 +57,11 @@ test('pre-paint initialization agrees with the registry and survives unavailable
     new Date(2026, 9, 1),
     new Date(2026, 10, 2),
     new Date(2026, 10, 3),
+    new Date(2027, 10, 30),
+    new Date(2027, 11, 1),
+    new Date(2028, 0, 1),
+    new Date(2028, 1, 29),
+    new Date(2028, 2, 1),
   ]) {
     for (const preference of [...holidays.PREFERENCES, 'invalid', undefined]) {
       const dataset = {};
@@ -81,26 +93,29 @@ test('pre-paint initialization agrees with the registry and survives unavailable
   }
 });
 
-test('Halloween has separate portraits and avatars for the entire roster, with classic fallbacks', () => {
+test('each costume theme has distinct artwork for the full roster and falls back for empty slots', () => {
   const root = path.resolve(__dirname, '..');
   for (const { key } of HERO_SLOTS) {
     for (const kind of ['portrait', 'avatar']) {
       const original = HEROES[key][kind];
-      const themed = holidays.asset(key, kind, original, 'halloween');
-      assert.notEqual(themed, original);
-      assert.ok(fs.existsSync(path.join(root, themed)), themed);
+      for (const theme of ['halloween', 'winter']) {
+        const themed = holidays.asset(key, kind, original, theme);
+        assert.ok(themed.startsWith(`assets/holidays/${theme}/`), themed);
+        assert.ok(fs.existsSync(path.join(root, themed)), themed);
+      }
       assert.ok(fs.existsSync(path.join(root, original)), original);
       assert.equal(holidays.asset(key, kind, original, 'default'), original);
       assert.equal(holidays.asset(key, kind, original, 'future-holiday'), original);
     }
   }
-  assert.equal(
-    holidays.asset('none', 'avatar', HEROES.none.avatar, 'halloween'),
-    HEROES.none.avatar,
-  );
+  for (const theme of ['halloween', 'winter'])
+    assert.equal(holidays.asset('none', 'avatar', HEROES.none.avatar, theme), HEROES.none.avatar);
 });
 
 test('holiday preferences persist independently and stay out of shared formation links', () => {
+  assert.deepEqual(settings.decodeSettings({ holidayTheme: 'new-build' }), {
+    holidayTheme: 'winter',
+  });
   const saved = {
     holidayTheme: 'halloween',
     holidayMotion: false,
@@ -128,10 +143,12 @@ test('capacity buff costumes use separate retained assets and fall back to Class
     ['bison', 'mighty-bison'],
   ]) {
     const original = `assets/buffs/${file}.webp`;
-    const seasonal = holidays.buffAsset(key, original, 'halloween');
-    assert.equal(seasonal, `assets/holidays/halloween/buffs/${file}.webp`);
-    assert.ok(fs.existsSync(path.join(root, seasonal)));
-    assert.ok(fs.existsSync(path.join(root, seasonal.replace('.webp', '.png'))));
+    for (const theme of ['halloween', 'winter']) {
+      const seasonal = holidays.buffAsset(key, original, theme);
+      assert.equal(seasonal, `assets/holidays/${theme}/buffs/${file}.webp`);
+      assert.ok(fs.existsSync(path.join(root, seasonal)));
+      assert.ok(fs.existsSync(path.join(root, seasonal.replace('.webp', '.png'))));
+    }
     assert.ok(fs.existsSync(path.join(root, original)));
     assert.equal(holidays.buffAsset(key, original, 'default'), original);
     assert.equal(holidays.buffAsset(key, original, 'future-holiday'), original);

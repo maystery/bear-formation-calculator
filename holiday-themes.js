@@ -19,6 +19,21 @@
     ava: 'ava',
     hilde: 'hilde',
   };
+
+  function heroArtwork(theme) {
+    return Object.freeze(
+      Object.fromEntries(
+        Object.entries(heroFiles).map(([key, file]) => [
+          key,
+          Object.freeze({
+            portrait: `assets/holidays/${theme}/heroes/${file}.webp`,
+            avatar: `assets/holidays/${theme}/profile/${file}.webp`,
+          }),
+        ]),
+      ),
+    );
+  }
+
   const HOLIDAYS = Object.freeze({
     halloween: Object.freeze({
       label: 'Halloween',
@@ -31,17 +46,20 @@
         valora: 'assets/holidays/halloween/buffs/valora.webp',
         bison: 'assets/holidays/halloween/buffs/mighty-bison.webp',
       }),
-      heroes: Object.freeze(
-        Object.fromEntries(
-          Object.entries(heroFiles).map(([key, file]) => [
-            key,
-            Object.freeze({
-              portrait: `assets/holidays/halloween/heroes/${file}.webp`,
-              avatar: `assets/holidays/halloween/profile/${file}.webp`,
-            }),
-          ]),
-        ),
-      ),
+      heroes: heroArtwork('halloween'),
+    }),
+    winter: Object.freeze({
+      label: 'Winter',
+      title: 'The winter workshop',
+      description: 'Meet the armorers, tinkerers, and toymakers of the winter hunt.',
+      bannerArt: 'assets/holidays/winter/workshop.webp',
+      start: 1201,
+      end: 229,
+      buffs: Object.freeze({
+        valora: 'assets/holidays/winter/buffs/valora.webp',
+        bison: 'assets/holidays/winter/buffs/mighty-bison.webp',
+      }),
+      heroes: heroArtwork('winter'),
     }),
   });
   const PREFERENCES = Object.freeze(['auto', 'default', ...Object.keys(HOLIDAYS)]);
@@ -49,8 +67,9 @@
 
   /** Recurring local dates, including ranges spanning New Year.
    * @param {Date} date
-   * @param {{start: number, end: number}} holiday */
+   * @param {{start?: number, end?: number}} holiday */
   function isInWindow(date, holiday) {
+    if (holiday.start == null || holiday.end == null) return false;
     const day = (date.getMonth() + 1) * 100 + date.getDate();
     return holiday.start <= holiday.end
       ? day >= holiday.start && day <= holiday.end
@@ -88,10 +107,7 @@
     if (!banner) return;
     const enabled = document.getElementById('holidayMotion')?.checked !== false;
     banner.classList.toggle('effects-paused', !enabled);
-    banner.classList.toggle(
-      'is-visible',
-      bannerInView && !document.hidden && current() === 'halloween',
-    );
+    banner.classList.toggle('is-visible', bannerInView && !document.hidden && !banner.hidden);
   }
 
   function syncArtwork() {

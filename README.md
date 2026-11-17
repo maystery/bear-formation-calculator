@@ -81,7 +81,9 @@ Every number field accepts shorthand — `566k`, `1.2m` and `281,850` all parse 
 
 Everything you type is saved in the browser, including the filling strategy, along with your theme, which sections are collapsed, and which heroes are enabled. **Reset** clears the lot and restores the defaults. The theme button cycles auto (follow your system) → light → dark.
 
-**Holiday theme** independently selects **Auto · seasonal**, **Classic**, or **Halloween**. Auto uses the visitor's local date and activates Halloween from **October 1 through November 2**, every year. Choose Halloween to use it year-round, or Classic to keep the original design. The choice is saved locally and is independent of light/dark mode and the game-season selector. Setup links share calculator values without changing the recipient's appearance preferences; Reset returns the holiday choice to Auto.
+**Holiday theme** offers **Auto · seasonal**, **Classic**, **Halloween**, and **Winter**. Auto uses the visitor's local date. It selects Halloween from **October 1 through November 2** and Winter from **December 1 through the last day of February**, including leap day. Both costume themes can be selected year-round. The choice is saved locally and is independent of light/dark mode and the game-season selector. Setup links share calculator values without changing the recipient's appearance preferences; Reset returns the holiday choice to Auto.
+
+**Winter** adds a lantern-lit workshop banner with gently falling snow. Valora wears a holly-trimmed cloak and snowflake armor, and Mighty Bison wears a knitted cap and a scarf with sleigh bells. All ten heroes have matching winter portraits and avatars. **Animate scene** pauses the snowfall. See the [Winter artwork and prompts](docs/winter-artwork.md).
 
 Halloween adds a moonlit banner, warm copper and plum colors, subtle cobweb card details, and ten generated hero costumes with matching priority and march-leader avatars. Original artwork stays in place. Seasonal PNG sources and optimized WebP exports live under `assets/holidays/halloween/`; see [the artwork notes](docs/halloween-artwork.md) for the generation prompts.
 

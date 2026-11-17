@@ -15,6 +15,7 @@ EXPORTS = [
     ("assets/holidays/*/heroes/*.png", 1000),
     ("assets/holidays/*/profile/*.png", 128),
     ("assets/holidays/*/buffs/*.png", 960),
+    ("assets/holidays/winter/workshop.png", 1600),
     ("assets/seasons/*.png", 222),
     ("assets/skills/*.png", 96),
     ("assets/skill-icons/*.png", 144),

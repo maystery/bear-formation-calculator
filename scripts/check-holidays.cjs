@@ -15,14 +15,14 @@ for (const engine of ['chromium', 'webkit']) {
       await nextPaint(page);
       const capacity = await page.locator('#tCap').innerText();
       const formation = await page.locator('#rows').innerText();
-      for (const choice of ['default', 'halloween']) {
+      for (const choice of ['default', 'halloween', 'winter']) {
         await page.locator('#holidayTheme').selectOption(choice);
         await nextPaint(page);
         for (const [key, file] of [
           ['valora', 'valora'],
           ['bison', 'mighty-bison'],
         ]) {
-          const base = choice === 'halloween' ? 'assets/holidays/halloween/buffs' : 'assets/buffs';
+          const base = choice === 'default' ? 'assets/buffs' : `assets/holidays/${choice}/buffs`;
           const portrait = page.locator(`[data-buff-asset="${key}"]`);
           assert.equal(await portrait.getAttribute('src'), `${base}/${file}.webp`);
           await portrait.evaluate((element) => element.decode());
@@ -34,6 +34,43 @@ for (const engine of ['chromium', 'webkit']) {
       const bison = page.locator('[data-buff-asset="bison"]');
       await bison.evaluate((element) => element.dispatchEvent(new Event('error')));
       assert.equal(await bison.getAttribute('src'), 'assets/buffs/mighty-bison.webp');
+    });
+
+    test('Winter switches cards and avatars together and persists on reload', async ({
+      page,
+      url,
+    }) => {
+      await page.goto(url);
+      const theme = page.locator('#holidayTheme');
+      await theme.selectOption('halloween');
+      const formation = await page.locator('#rows').innerText();
+      await theme.selectOption('winter');
+      await nextPaint(page);
+      assert.equal(await page.locator('#holidayEyebrow').textContent(), 'Winter');
+      assert.equal(await page.locator('.holiday-effects').isVisible(), false);
+      assert.equal(await page.locator('.winter-snow').isVisible(), true);
+      await page.locator('#holidayMotion').uncheck();
+      assert.equal(
+        await page.locator('.winter-snow').evaluate((el) => getComputedStyle(el).animationPlayState),
+        'paused',
+      );
+      const banner = page.locator('.holiday-banner-art img');
+      assert.equal(await banner.getAttribute('src'), 'assets/holidays/winter/workshop.webp');
+      await banner.evaluate((img) => img.decode());
+      for (const element of await page.locator('[data-hero-asset]').all()) {
+        const src = await element.evaluate(
+          (el) => el.dataset.src || el.getAttribute('href') || el.getAttribute('src'),
+        );
+        assert.ok(src.startsWith('assets/holidays/winter/'), src);
+      }
+      assert.equal(await page.locator('#rows').innerText(), formation);
+      await page.waitForFunction(
+        () => JSON.parse(localStorage.getItem('bearcalc.v1') || '{}').holidayTheme === 'winter',
+      );
+      await page.reload();
+      assert.equal(await theme.inputValue(), 'winter');
+      await theme.selectOption('default');
+      assert.equal(await page.locator('#holidayBanner').isVisible(), false);
     });
 
     test('scene effects pause off-screen, while hidden, by choice, and with reduced motion', async ({
